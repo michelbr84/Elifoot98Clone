@@ -1,8 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { useGameStore } from '@/src/state/useGameStore'
 import { Player, Fixture, Standing } from '@prisma/client'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/navigation'
+import { advanceDay, playNextMatch } from '@/app/game/actions'
+import { MatchResultView } from './MatchResultView'
 
 interface HomeViewProps {
   nextFixture?: Fixture & {
@@ -22,15 +26,45 @@ export function HomeView({
   injuredPlayers,
   suspendedPlayers 
 }: HomeViewProps) {
-  const { currentClub, currentDate } = useGameStore()
+  const { currentClub, currentDate, currentManager } = useGameStore()
+  const [isLoading, setIsLoading] = useState(false)
+  const [matchResult, setMatchResult] = useState<any>(null)
+  const router = useRouter()
 
-  if (!currentClub) {
+  if (!currentClub || !currentManager) {
     return (
       <div className="card-retro p-8 text-center">
         <h1 className="text-2xl mb-4">BEM-VINDO AO FOOTMANAGER 98</h1>
         <p>Inicie um novo jogo ou carregue um jogo salvo</p>
       </div>
     )
+  }
+
+  const handleAdvanceDay = async () => {
+    if (!currentManager?.id || !currentDate) return
+    setIsLoading(true)
+    try {
+      await advanceDay(currentManager.id, currentDate)
+      router.refresh()
+    } catch (error) {
+      console.error('Erro ao avançar dia:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handlePlayMatch = async () => {
+    if (!currentManager?.id || !nextFixture) return
+    setIsLoading(true)
+    try {
+      const response = await playNextMatch(currentManager.id)
+      setMatchResult(response.result)
+      router.refresh()
+    } catch (error) {
+      console.error('Erro ao jogar partida:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -113,11 +147,37 @@ export function HomeView({
       <div className="card-retro">
         <h2 className="font-mono text-lg mb-4 uppercase">Ações Rápidas</h2>
         <div className="flex gap-2 flex-wrap">
-          <button className="btn-primary">AVANÇAR DIA</button>
-          <button className="btn-retro">JOGAR PRÓXIMA PARTIDA</button>
-          <button className="btn-retro">SIMULAR ATÉ PRÓXIMO JOGO</button>
+          <button 
+            className="btn-primary"
+            onClick={handleAdvanceDay}
+            disabled={isLoading}
+          >
+            {isLoading ? 'PROCESSANDO...' : 'AVANÇAR DIA'}
+          </button>
+          <button 
+            className="btn-retro"
+            onClick={handlePlayMatch}
+            disabled={isLoading || !nextFixture}
+          >
+            JOGAR PRÓXIMA PARTIDA
+          </button>
+          <button 
+            className="btn-retro"
+            disabled={true}
+            title="Em breve"
+          >
+            SIMULAR ATÉ PRÓXIMO JOGO
+          </button>
         </div>
       </div>
+
+      {/* Match Result Modal */}
+      {matchResult && (
+        <MatchResultView 
+          matchResult={matchResult}
+          onClose={() => setMatchResult(null)}
+        />
+      )}
     </div>
   )
 }

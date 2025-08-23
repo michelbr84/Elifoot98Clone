@@ -3,8 +3,12 @@ import { GameLayout } from '@/src/ui/components/GameLayout'
 import { HomeView } from '@/src/ui/components/views/HomeView'
 import { SquadView } from '@/src/ui/components/views/SquadView'
 import { TableView } from '@/src/ui/components/views/TableView'
+import { TacticsView } from '@/src/ui/components/views/TacticsView'
+import { FixturesView } from '@/src/ui/components/views/FixturesView'
+import { FinanceView } from '@/src/ui/components/views/FinanceView'
+import { NewsView } from '@/src/ui/components/views/NewsView'
 import { SavesView } from '@/src/ui/components/views/SavesView'
-import { getGameData, listSaves } from './actions'
+import { getGameData, listSaves, getFinanceData, getNews } from './actions'
 
 export default async function GamePage({
   searchParams
@@ -19,6 +23,8 @@ export default async function GamePage({
 
   const gameData = await getGameData(managerId)
   const savesResult = view === 'saves' ? await listSaves(managerId) : null
+  const financeData = view === 'finance' ? await getFinanceData(managerId) : null
+  const news = view === 'news' ? await getNews(managerId) : null
 
   return (
     <GameLayout>
@@ -42,18 +48,14 @@ export default async function GamePage({
         />
       )}
       
-      {view === 'tactics' && (
-        <div className="card-retro p-8 text-center">
-          <h1 className="text-2xl mb-4">TÁTICAS</h1>
-          <p>Em construção...</p>
-        </div>
-      )}
+      {view === 'tactics' && <TacticsView />}
       
       {view === 'fixtures' && (
-        <div className="card-retro p-8 text-center">
-          <h1 className="text-2xl mb-4">JOGOS</h1>
-          <p>Em construção...</p>
-        </div>
+        <FixturesView 
+          fixtures={gameData.fixtures}
+          currentRound={gameData.currentRound}
+          clubId={gameData.club.id}
+        />
       )}
       
       {view === 'transfers' && (
@@ -70,18 +72,15 @@ export default async function GamePage({
         </div>
       )}
       
-      {view === 'finance' && (
-        <div className="card-retro p-8 text-center">
-          <h1 className="text-2xl mb-4">FINANÇAS</h1>
-          <p>Em construção...</p>
-        </div>
+      {view === 'finance' && financeData && (
+        <FinanceView financeData={financeData} />
       )}
       
-      {view === 'news' && (
-        <div className="card-retro p-8 text-center">
-          <h1 className="text-2xl mb-4">NOTÍCIAS</h1>
-          <p>Em construção...</p>
-        </div>
+      {view === 'news' && news && (
+        <NewsView 
+          news={news}
+          clubId={gameData.club.id}
+        />
       )}
       
       {view === 'saves' && savesResult?.success && (
