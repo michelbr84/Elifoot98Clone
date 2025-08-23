@@ -12,7 +12,7 @@ interface GameState {
   // UI state
   isLoading: boolean
   isSimulating: boolean
-  selectedView: 'home' | 'squad' | 'tactics' | 'fixtures' | 'table' | 'all-divisions' | 'transfers' | 'training' | 'finance' | 'news' | 'saves' | 'settings'
+  selectedView: 'home' | 'squad' | 'lineup' | 'tactics' | 'fixtures' | 'table' | 'all-divisions' | 'transfers' | 'training' | 'finance' | 'news' | 'saves' | 'settings'
   
   // Manager fired state
   isManagerFired: boolean

@@ -6,15 +6,52 @@ import dayjs from 'dayjs'
 export class SeasonManager {
   constructor(private prisma: PrismaClient) {}
 
+  async getSeasonStatus() {
+    const activeSeason = await this.prisma.season.findFirst({
+      where: { isActive: true },
+      include: { 
+        divisions: {
+          include: {
+            fixtures: true,
+            clubs: true
+          }
+        }
+      }
+    })
+
+    if (!activeSeason) return null
+
+    const status = {
+      seasonYear: activeSeason.year,
+      divisions: [] as any[]
+    }
+
+    for (const division of activeSeason.divisions) {
+      const totalFixtures = division.fixtures.length
+      const playedFixtures = division.fixtures.filter(f => f.isPlayed).length
+      const unplayedFixtures = totalFixtures - playedFixtures
+      
+      status.divisions.push({
+        name: division.name,
+        totalFixtures,
+        playedFixtures,
+        unplayedFixtures,
+        totalClubs: division.clubs.length,
+        expectedFixtures: (division.clubs.length - 1) * 2 * (division.clubs.length / 2) // Round robin formula
+      })
+    }
+
+    return status
+  }
+
   async checkAndProcessSeasonEnd(currentDate: Date): Promise<boolean> {
     const activeSeason = await this.prisma.season.findFirst({
       where: { isActive: true },
       include: { 
         divisions: {
           include: {
-            fixtures: {
-              where: { isPlayed: false }
-            }
+            fixtures: true,
+            clubs: true
           }
         }
       }
@@ -22,14 +59,42 @@ export class SeasonManager {
 
     if (!activeSeason) return false
 
-    // Check if all fixtures are played (22 rounds = 22 * 6 = 132 fixtures per division)
-    const hasUnplayedFixtures = activeSeason.divisions.some(
-      division => division.fixtures.length > 0
-    )
+    // Debug logging
+    console.log('=== SEASON END CHECK ===')
+    console.log('Active Season:', activeSeason.year)
+    console.log('Current Date:', currentDate)
+    
+    let allFixturesPlayed = true
+    
+    // Check each division
+    for (const division of activeSeason.divisions) {
+      const totalFixtures = division.fixtures.length
+      const playedFixtures = division.fixtures.filter(f => f.isPlayed).length
+      const unplayedFixtures = totalFixtures - playedFixtures
+      
+      console.log(`Division: ${division.name}`)
+      console.log(`  Total fixtures: ${totalFixtures}`)
+      console.log(`  Played fixtures: ${playedFixtures}`)
+      console.log(`  Unplayed fixtures: ${unplayedFixtures}`)
+      console.log(`  Total clubs: ${division.clubs.length}`)
+      
+      // With 12 clubs, each club plays 22 matches (11 home, 11 away)
+      // Total fixtures = 12 * 11 = 132
+      const expectedFixtures = division.clubs.length * (division.clubs.length - 1)
+      console.log(`  Expected fixtures: ${expectedFixtures}`)
+      
+      if (unplayedFixtures > 0) {
+        allFixturesPlayed = false
+      }
+    }
 
-    if (hasUnplayedFixtures) return false
+    console.log('All fixtures played:', allFixturesPlayed)
+    console.log('========================')
+
+    if (!allFixturesPlayed) return false
 
     // Season is complete!
+    console.log('🏆 SEASON COMPLETE! Processing season end...')
     await this.processSeasonEnd(activeSeason.id)
     return true
   }

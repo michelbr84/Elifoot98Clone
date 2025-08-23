@@ -98,8 +98,9 @@ export function GameLayout({ children }: GameLayoutProps) {
   const menuItems = [
     { id: 'home', label: 'INÍCIO', icon: '🏠' },
     { id: 'squad', label: 'ELENCO', icon: '👥' },
+    { id: 'lineup', label: 'ESCALAÇÃO', icon: '⚽' },
     { id: 'tactics', label: 'TÁTICA', icon: '📋' },
-    { id: 'fixtures', label: 'JOGOS', icon: '⚽' },
+    { id: 'fixtures', label: 'JOGOS', icon: '📅' },
     { id: 'table', label: 'TABELA', icon: '📊' },
     { id: 'all-divisions', label: 'TODAS AS DIVISÕES', icon: '🏆' },
     { id: 'transfers', label: 'TRANSFERÊNCIAS', icon: '💰' },

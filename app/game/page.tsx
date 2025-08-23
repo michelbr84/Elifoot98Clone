@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { GameLayout } from '@/src/ui/components/GameLayout'
 import { HomeView } from '@/src/ui/components/views/HomeView'
 import { SquadView } from '@/src/ui/components/views/SquadView'
+import { LineupView } from '@/src/ui/components/views/LineupView'
 import { TableView } from '@/src/ui/components/views/TableView'
 import { TacticsView } from '@/src/ui/components/views/TacticsView'
 import { FixturesView } from '@/src/ui/components/views/FixturesView'
@@ -44,6 +45,10 @@ export default async function GamePage({
       
       {view === 'squad' && (
         <SquadView players={gameData.players} />
+      )}
+      
+      {view === 'lineup' && (
+        <LineupView players={gameData.players} />
       )}
       
       {view === 'table' && (

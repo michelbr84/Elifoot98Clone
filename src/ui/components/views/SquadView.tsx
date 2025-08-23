@@ -46,8 +46,16 @@ export function SquadView({ players }: SquadViewProps) {
   const getStatusIcon = (player: Player) => {
     if (player.isInjured) return '🏥'
     if (player.banMatches > 0) return '🚫'
-    if (player.fitness < 70) return '😰'
+    if (player.fitness < 50) return '😫' // Muito cansado
+    if (player.fitness < 70) return '😰' // Cansado
     if (player.morale < 40) return '😔'
+    if (player.fitness === 100 && player.morale > 80) return '💪' // Em ótima forma
+    return ''
+  }
+  
+  const getFitnessColor = (fitness: number) => {
+    if (fitness < 50) return 'text-retro-red font-bold'
+    if (fitness < 70) return 'text-retro-amber'
     return ''
   }
 
@@ -122,7 +130,7 @@ export function SquadView({ players }: SquadViewProps) {
                 <td className="text-center">{player.nationality.substring(0, 3).toUpperCase()}</td>
                 <td className="text-center font-bold">{player.overall}</td>
                 <td className="text-center">
-                  <span className={player.fitness < 70 ? 'text-retro-red' : ''}>
+                  <span className={getFitnessColor(player.fitness)}>
                     {player.fitness}%
                   </span>
                 </td>
