@@ -189,4 +189,4 @@ O jogo está 100% funcional! Pequenas melhorias planejadas:
 
 **Desenvolvido com ❤️ para os fãs de jogos de gerenciamento de futebol**
 
-*Última atualização: Janeiro 2025*
+*Última atualização: Agosto 2025*
