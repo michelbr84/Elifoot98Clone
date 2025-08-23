@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import seedrandom from 'seedrandom'
 import dayjs from 'dayjs'
+import { CalendarGenerator } from '../src/game/rules/calendar-generator'
 
 const prisma = new PrismaClient()
 
@@ -246,6 +247,11 @@ async function main() {
       })
     }
   }
+  
+  // Generate fixtures for the season
+  console.log('Generating fixtures...')
+  const calendarGenerator = new CalendarGenerator(prisma, seed)
+  await calendarGenerator.generateSeasonFixtures(season.id)
   
   console.log('✅ Seed completed successfully!')
 }
