@@ -8,11 +8,12 @@ interface TransfersViewProps {
   myClub: Club & { players: Player[] }
   otherClubs: (Club & { players: Player[] })[]
   budget: number
+  recentTransfers?: any[]
 }
 
-type TabType = 'market' | 'myteam' | 'offers'
+type TabType = 'market' | 'myteam' | 'offers' | 'recent'
 
-export function TransfersView({ myClub, otherClubs, budget }: TransfersViewProps) {
+export function TransfersView({ myClub, otherClubs, budget, recentTransfers = [] }: TransfersViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>('market')
   const [selectedClub, setSelectedClub] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -126,6 +127,12 @@ export function TransfersView({ myClub, otherClubs, budget }: TransfersViewProps
           >
             OFERTAS (0)
           </button>
+          <button
+            className={`px-4 py-2 ${activeTab === 'recent' ? 'btn-primary' : 'btn-retro'}`}
+            onClick={() => setActiveTab('recent')}
+          >
+            RECENTES ({recentTransfers.length})
+          </button>
         </div>
 
         {/* Filters */}
@@ -167,7 +174,44 @@ export function TransfersView({ myClub, otherClubs, budget }: TransfersViewProps
         </div>
 
         {/* Players List */}
-        {activeTab !== 'offers' ? (
+        {activeTab === 'offers' ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Nenhuma oferta pendente</p>
+          </div>
+        ) : activeTab === 'recent' ? (
+          <div className="overflow-x-auto">
+            <table className="table-retro w-full">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Jogador</th>
+                  <th>De</th>
+                  <th>Para</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTransfers.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4">
+                      Nenhuma transferência recente
+                    </td>
+                  </tr>
+                ) : (
+                  recentTransfers.map((transfer: any) => (
+                    <tr key={transfer.id}>
+                      <td>{new Date(transfer.transferDate).toLocaleDateString('pt-BR')}</td>
+                      <td className="font-bold">{transfer.player.name}</td>
+                      <td>{transfer.fromClub.shortName}</td>
+                      <td>{transfer.toClub.shortName}</td>
+                      <td className="text-right">{formatCurrency(transfer.fee)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
             <table className="table-retro w-full">
               <thead>
@@ -235,10 +279,6 @@ export function TransfersView({ myClub, otherClubs, budget }: TransfersViewProps
                 )}
               </tbody>
             </table>
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Nenhuma oferta pendente</p>
           </div>
         )}
       </div>
