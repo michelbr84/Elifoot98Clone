@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ConfirmDialog } from '@/src/ui/components/ConfirmDialog'
+import { useSound } from '@/src/hooks/useSound'
+import { useRestartTutorial } from '@/src/ui/components/TutorialOverlay'
 
 interface SettingsViewProps {
   managerId: string
@@ -10,20 +12,36 @@ interface SettingsViewProps {
 
 export function SettingsView({ managerId }: SettingsViewProps) {
   const router = useRouter()
+  const { playClick, playSuccess, setEnabled: setSoundEnabled, isEnabled } = useSound()
+  const restartTutorial = useRestartTutorial()
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
   const [simulationSpeed, setSimulationSpeed] = useState('normal')
-  const [soundEnabled, setSoundEnabled] = useState(false)
+  const [soundEnabled, setSoundEnabledState] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Load settings on mount
+  useEffect(() => {
+    const settings = localStorage.getItem('gameSettings')
+    if (settings) {
+      const parsed = JSON.parse(settings)
+      setAutoSaveEnabled(parsed.autoSaveEnabled ?? true)
+      setSimulationSpeed(parsed.simulationSpeed ?? 'normal')
+      setSoundEnabledState(parsed.soundEnabled ?? true)
+    }
+    setSoundEnabledState(isEnabled())
+  }, [isEnabled])
+
   const handleSave = () => {
-    // TODO: Save settings to localStorage or database
+    playClick()
     localStorage.setItem('gameSettings', JSON.stringify({
       autoSaveEnabled,
       simulationSpeed,
       soundEnabled
     }))
     
+    setSoundEnabled(soundEnabled)
+    playSuccess()
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -72,12 +90,14 @@ export function SettingsView({ managerId }: SettingsViewProps) {
           </div>
           
           <div className="flex items-center justify-between">
-            <label className="font-mono">Sons (Em breve)</label>
+            <label className="font-mono">Sons do Jogo</label>
             <input
               type="checkbox"
               checked={soundEnabled}
-              onChange={(e) => setSoundEnabled(e.target.checked)}
-              disabled
+              onChange={(e) => {
+                setSoundEnabledState(e.target.checked)
+                playClick()
+              }}
               className="w-5 h-5"
             />
           </div>
@@ -172,6 +192,13 @@ export function SettingsView({ managerId }: SettingsViewProps) {
             <li>• Treine seus jogadores regularmente</li>
             <li>• Ajuste suas táticas para cada adversário</li>
           </ul>
+          
+          <button
+            className="btn-retro w-full mt-4"
+            onClick={restartTutorial}
+          >
+            REINICIAR TUTORIAL
+          </button>
         </div>
       </div>
 

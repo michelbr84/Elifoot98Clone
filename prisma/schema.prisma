@@ -311,14 +311,15 @@ model Injury {
 }
 
 model Training {
-  id       String   @id @default(cuid())
-  playerId String
-  player   Player   @relation(fields: [playerId], references: [id])
-  type     String   // fitness, tactics, technique
-  date     DateTime
-  effect   Int      // -5 to +5
+  id          String   @id @default(cuid())
+  playerId    String
+  player      Player   @relation(fields: [playerId], references: [id])
+  type        String   // fitness, form, recovery, intensive
+  date        DateTime
+  fitnessGain Int      @default(0)
+  formGain    Int      @default(0)
   
-  createdAt DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 
 model SaveSlot {

@@ -3,6 +3,7 @@
 import { useGameStore } from '@/src/state/useGameStore'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useGlobalShortcuts } from '@/src/hooks/useKeyboardShortcuts'
+import { TutorialOverlay } from './TutorialOverlay'
 import dayjs from 'dayjs'
 import ptBr from 'dayjs/locale/pt-br'
 
@@ -101,6 +102,9 @@ export function GameLayout({ children }: GameLayoutProps) {
           {children}
         </div>
       </div>
+      
+      {/* Tutorial */}
+      <TutorialOverlay />
     </div>
   )
 }

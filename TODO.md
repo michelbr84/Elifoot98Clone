@@ -1,88 +1,74 @@
 # TODO - FootManager 98
 
-## ✅ COMPLETO - JOGO 100% FUNCIONAL!
+## 🚨 PROBLEMAS CRÍTICOS ENCONTRADOS
 
-### Todas as Funcionalidades Implementadas:
+### Bugs que Impedem o Jogo (URGENTE)
+- [ ] Erro 500 ao aplicar treinos - schema do banco incompatível
+- [ ] Não está claro como avançar dias ou jogar
+- [ ] Algumas funções parecem estáticas/simuladas
+- [ ] Falta sistema de sons do Windows
 
-#### Sistema Base
-- [x] Bootstrap do projeto (Next.js, TypeScript, Tailwind, ESLint, Prettier, Husky, Vitest)
-- [x] Prisma + SQLite, schema e seed básico
-- [x] Documentação completa (Architecture, Game Rules, Save Format, Roadmap)
+### Problemas de UX (CRÍTICO)
+- [ ] Jogador não sabe como jogar/avançar no tempo
+- [ ] Falta feedback visual claro das ações
+- [ ] Sem tutorial ou instruções iniciais
+- [ ] Mensagens de erro não são claras
 
-#### Gameplay Core
-- [x] Gerador de calendário + sistema de classificação
-- [x] Engine de partida v1 com comentários PT-BR
-- [x] Sistema de lesões e suspensões aplicado
-- [x] Validação de escalação automática
-- [x] Final de temporada com promoção/rebaixamento
-- [x] Sistema de progressão temporal (dias, meses, anos)
+## 📋 PLANO DE AÇÃO IMEDIATO
 
-#### Interface & Views
-- [x] UI completa com todas as views funcionais
-- [x] Home - Dashboard com informações principais
-- [x] Elenco - Listagem e estatísticas dos jogadores
-- [x] Táticas - Formações, agressividade, pressão e estilo de jogo
-- [x] Jogos/Fixtures - Calendário completo com navegação
-- [x] Tabela - Classificação com zonas de promoção/rebaixamento
-- [x] Transferências - Mercado completo com ofertas e IA
-- [x] Treinos - Sistema de treinos com 4 tipos diferentes
-- [x] Finanças - Controle financeiro completo
-- [x] Notícias - Log automático de eventos
-- [x] Saves - Sistema completo de saves (JSON + DB)
-- [x] Configurações - Opções de jogo e ajuda
+### 1. Corrigir Erro de Treinos
+- [ ] Ajustar schema do Training no Prisma
+- [ ] Atualizar função applyTraining
+- [ ] Executar migration
+- [ ] Testar treinos
 
-#### Sistemas Avançados
-- [x] Sistema financeiro completo
-  - [x] Bilheteria automática
-  - [x] Dedução semanal de salários
-  - [x] Patrocínio mensal baseado em divisão
-  - [x] Transações registradas
-  - [x] Avisos de crise financeira
+### 2. Sistema de Progressão Clara
+- [ ] Adicionar botões grandes e visíveis para avançar dia
+- [ ] Implementar "Simular até próximo jogo"
+- [ ] Feedback visual quando ação é executada
+- [ ] Indicadores de progresso
+
+### 3. Tutorial e Instruções
+- [ ] Tela inicial com instruções básicas
+- [ ] Tooltips explicativos nos botões
+- [ ] Guia passo-a-passo inicial
+- [ ] Mensagens de ajuda contextuais
+
+### 4. Sistema de Sons
+- [ ] Implementar sons usando Web Audio API
+- [ ] Som de clique nos botões
+- [ ] Som de gol/evento importante
+- [ ] Música de fundo opcional
+
+### 5. Melhorias de Feedback
+- [ ] Loading states mais claros
+- [ ] Notificações de sucesso/erro
+- [ ] Animações de transição
+- [ ] Confirmações visuais
+
+## ✅ Já Implementado (mas precisa refinamento)
+
+### Sistema Base
+- [x] Bootstrap do projeto
+- [x] Prisma + SQLite
+- [x] Documentação
+
+### Gameplay Core
+- [x] Gerador de calendário
+- [x] Engine de partida
+- [x] Sistema de lesões
+- [x] Validação de escalação
+- [x] Final de temporada
+- [x] Progressão temporal
+
+### Interface & Views
+- [x] Todas as views criadas
+- [x] Sistema de saves
+- [x] Atalhos de teclado
+
+### Sistemas Avançados
+- [x] Sistema financeiro
 - [x] Gestão de jogadores
-  - [x] Envelhecimento anual
-  - [x] Redução de overall para jogadores velhos
-  - [x] Geração automática de jovens
-  - [x] Contratos com expiração
-  - [x] Treinos afetam fitness e forma
 - [x] Sistema de transferências
-  - [x] IA simples para aceitar/rejeitar ofertas
-  - [x] Atualização de orçamentos
-  - [x] Notícias automáticas de transferências
 
-#### UX & Qualidade
-- [x] Atalhos de teclado (H,E,T,J,C,F,N,S,ESC,?)
-- [x] Loading states e feedback visual
-- [x] Confirmações antes de ações importantes
-- [x] Indicador de data visível e formatado
-- [x] Mensagens de erro e sucesso
-- [x] Modal de resultados de partida
-- [x] Sistema de auto-save
-
-#### Funcionalidades Técnicas
-- [x] Server actions para todas as operações
-- [x] Táticas salvas são usadas nas partidas
-- [x] Estado persistente com Zustand
-- [x] Internacionalização preparada (arquivos i18n criados)
-- [x] Sistema determinístico com seeds
-
-## 🎮 JOGO ESTÁ 100% COMPLETO E JOGÁVEL!
-
-### O que foi entregue:
-- ✅ Jogo de gerenciamento de futebol completo
-- ✅ Todas as funcionalidades do "Elifoot 98" implementadas
-- ✅ Interface retro moderna e responsiva
-- ✅ Sistema de simulação realista
-- ✅ Progressão completa de temporadas
-- ✅ Gestão financeira e de elenco
-- ✅ Saves funcionais
-
-### Pequenas melhorias futuras (não críticas):
-- Aplicar traduções i18n (estrutura pronta)
-- Modo multi-idioma na interface
-- Sons e música
-- Dark mode
-- PWA support
-- Copa nacional
-- Modo multiplayer hot-seat
-
-O jogo está pronto para ser jogado!
+## 🎯 OBJETIVO: Tornar o jogo realmente jogável e intuitivo!
