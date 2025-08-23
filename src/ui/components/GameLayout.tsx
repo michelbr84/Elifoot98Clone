@@ -4,6 +4,8 @@ import { useGameStore } from '@/src/state/useGameStore'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useGlobalShortcuts } from '@/src/hooks/useKeyboardShortcuts'
 import { TutorialOverlay } from './TutorialOverlay'
+import ManagerFiredDialog from './ManagerFiredDialog'
+import { useEffect } from 'react'
 import dayjs from 'dayjs'
 import ptBr from 'dayjs/locale/pt-br'
 
@@ -19,7 +21,13 @@ export function GameLayout({ children }: GameLayoutProps) {
     currentDate, 
     selectedView, 
     setSelectedView,
-    isSimulating 
+    isSimulating,
+    isManagerFired,
+    setManagerFired,
+    setCurrentManager,
+    setCurrentClub,
+    setCurrentSeason,
+    setCurrentDate
   } = useGameStore()
   
   const router = useRouter()
@@ -29,9 +37,62 @@ export function GameLayout({ children }: GameLayoutProps) {
   // Enable keyboard shortcuts
   useGlobalShortcuts()
 
+  // Initialize game state when component mounts
+  useEffect(() => {
+    const initializeGameState = async () => {
+      if (!managerId) return
+      
+      try {
+        const response = await fetch(`/api/game/init?managerId=${managerId}`)
+        if (response.ok) {
+          const gameData = await response.json()
+          
+          setCurrentManager(gameData.manager)
+          setCurrentClub(gameData.club)
+          setCurrentSeason(gameData.season)
+          setCurrentDate(new Date(gameData.currentDate || new Date()))
+        }
+      } catch (error) {
+        console.error('Error initializing game state:', error)
+      }
+    }
+
+    initializeGameState()
+  }, [managerId, setCurrentManager, setCurrentClub, setCurrentSeason, setCurrentDate])
+
   const handleViewChange = (view: string) => {
     setSelectedView(view as any)
     router.push(`/game?managerId=${managerId}&view=${view}`)
+  }
+
+  const handleNewClubSelection = async (clubId: string) => {
+    try {
+      const response = await fetch('/api/game/assign-new-club', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          managerId: managerId,
+          clubId: clubId
+        })
+      })
+
+      if (response.ok) {
+        // Refresh game data
+        const gameResponse = await fetch(`/api/game/init?managerId=${managerId}`)
+        if (gameResponse.ok) {
+          const gameData = await gameResponse.json()
+          setCurrentManager(gameData.manager)
+          setCurrentClub(gameData.club)
+          setCurrentSeason(gameData.season)
+          setCurrentDate(new Date(gameData.currentDate || new Date()))
+        }
+        setManagerFired(false)
+      }
+    } catch (error) {
+      console.error('Erro ao atribuir novo clube:', error)
+    }
   }
 
   const menuItems = [
@@ -40,6 +101,7 @@ export function GameLayout({ children }: GameLayoutProps) {
     { id: 'tactics', label: 'TÁTICA', icon: '📋' },
     { id: 'fixtures', label: 'JOGOS', icon: '⚽' },
     { id: 'table', label: 'TABELA', icon: '📊' },
+    { id: 'all-divisions', label: 'TODAS AS DIVISÕES', icon: '🏆' },
     { id: 'transfers', label: 'TRANSFERÊNCIAS', icon: '💰' },
     { id: 'training', label: 'TREINO', icon: '🏃' },
     { id: 'finance', label: 'FINANÇAS', icon: '💵' },
@@ -105,6 +167,13 @@ export function GameLayout({ children }: GameLayoutProps) {
       
       {/* Tutorial */}
       <TutorialOverlay />
+      
+      {/* Manager Fired Dialog */}
+      <ManagerFiredDialog
+        isOpen={isManagerFired}
+        onClose={() => setManagerFired(false)}
+        onClubSelected={handleNewClubSelection}
+      />
     </div>
   )
 }

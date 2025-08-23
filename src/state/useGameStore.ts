@@ -12,7 +12,10 @@ interface GameState {
   // UI state
   isLoading: boolean
   isSimulating: boolean
-  selectedView: 'home' | 'squad' | 'tactics' | 'fixtures' | 'table' | 'transfers' | 'training' | 'finance' | 'news' | 'saves'
+  selectedView: 'home' | 'squad' | 'tactics' | 'fixtures' | 'table' | 'all-divisions' | 'transfers' | 'training' | 'finance' | 'news' | 'saves' | 'settings'
+  
+  // Manager fired state
+  isManagerFired: boolean
   
   // Actions
   setCurrentManager: (manager: Manager | null) => void
@@ -22,6 +25,7 @@ interface GameState {
   setLoading: (loading: boolean) => void
   setSimulating: (simulating: boolean) => void
   setSelectedView: (view: GameState['selectedView']) => void
+  setManagerFired: (fired: boolean) => void
   reset: () => void
 }
 
@@ -33,6 +37,7 @@ const initialState = {
   isLoading: false,
   isSimulating: false,
   selectedView: 'home' as const,
+  isManagerFired: false,
 }
 
 export const useGameStore = create<GameState>()(
@@ -47,6 +52,7 @@ export const useGameStore = create<GameState>()(
       setLoading: (loading) => set({ isLoading: loading }),
       setSimulating: (simulating) => set({ isSimulating: simulating }),
       setSelectedView: (view) => set({ selectedView: view }),
+      setManagerFired: (fired) => set({ isManagerFired: fired }),
       
       reset: () => set(initialState),
     }),

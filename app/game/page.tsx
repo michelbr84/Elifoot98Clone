@@ -11,6 +11,7 @@ import { TrainingView } from '@/src/ui/components/views/TrainingView'
 import { TransfersView } from '@/src/ui/components/views/TransfersView'
 import { SavesView } from '@/src/ui/components/views/SavesView'
 import { SettingsView } from '@/src/ui/components/views/SettingsView'
+import AllDivisionsView from '@/src/ui/components/views/AllDivisionsView'
 import { getGameData, listSaves, getFinanceData, getNews, getTransferData } from './actions'
 
 export default async function GamePage({
@@ -50,6 +51,10 @@ export default async function GamePage({
           standings={gameData.standings} 
           divisionName={gameData.division.name}
         />
+      )}
+      
+      {view === 'all-divisions' && (
+        <AllDivisionsView />
       )}
       
       {view === 'tactics' && <TacticsView />}

@@ -5,7 +5,7 @@ import { useGameStore } from '@/src/state/useGameStore'
 import { Player, Fixture, Standing } from '@prisma/client'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
-import { advanceDay, playNextMatch } from '@/app/game/actions'
+
 import { MatchResultView } from './MatchResultView'
 import { useSound } from '@/src/hooks/useSound'
 import { NotificationManager } from '@/src/ui/components/Notification'
@@ -28,7 +28,7 @@ export function HomeView({
   injuredPlayers,
   suspendedPlayers
 }: HomeViewProps) {
-  const { currentClub, currentDate, currentManager } = useGameStore()
+  const { currentClub, currentDate, currentManager, setCurrentDate } = useGameStore()
   const [isLoading, setIsLoading] = useState(false)
   const [matchResult, setMatchResult] = useState<any>(null)
   const router = useRouter()
@@ -48,10 +48,31 @@ export function HomeView({
     playClick()
     setIsLoading(true)
     try {
-      await advanceDay(currentManager.id, currentDate)
-      playSuccess()
-      NotificationManager.success('Dia avançado com sucesso!')
-      router.refresh()
+      const response = await fetch('/api/game/advance-day', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          managerId: currentManager.id,
+          currentDate: currentDate
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to advance day')
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        // Update the current date in the store
+        setCurrentDate(new Date(data.newDate))
+        playSuccess()
+        NotificationManager.success('Dia avançado com sucesso!')
+        router.refresh()
+      } else {
+        throw new Error(data.error || 'Failed to advance day')
+      }
     } catch (error) {
       console.error('Erro ao avançar dia:', error)
       playError()
@@ -67,13 +88,31 @@ export function HomeView({
     playWhistle()
     setIsLoading(true)
     try {
-      const response = await playNextMatch(currentManager.id)
-      setMatchResult(response.result)
-      // Play goal sound if there were goals
-      if (response.result.homeScore > 0 || response.result.awayScore > 0) {
-        playSuccess()
+      const response = await fetch('/api/game/play-match', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          managerId: currentManager.id
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to play match')
       }
-      router.refresh()
+
+      const data = await response.json()
+      if (data.success) {
+        setMatchResult(data.result)
+        // Play goal sound if there were goals
+        if (data.result.homeScore > 0 || data.result.awayScore > 0) {
+          playSuccess()
+        }
+        router.refresh()
+      } else {
+        throw new Error(data.error || 'Failed to play match')
+      }
     } catch (error) {
       console.error('Erro ao jogar partida:', error)
       playError()
@@ -96,12 +135,34 @@ export function HomeView({
         return
       }
 
-      // Simulate multiple days
+      // Simulate multiple days using the API
       let currentSimDate = currentDate
       for (let i = 0; i < daysUntilMatch; i++) {
-        currentSimDate = await advanceDay(currentManager.id, currentSimDate)
+        const response = await fetch('/api/game/advance-day', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            managerId: currentManager.id,
+            currentDate: currentSimDate
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to advance day during simulation')
+        }
+
+        const data = await response.json()
+        if (data.success) {
+          currentSimDate = new Date(data.newDate)
+        } else {
+          throw new Error(data.error || 'Failed to advance day during simulation')
+        }
       }
       
+      // Update the current date in the store
+      setCurrentDate(currentSimDate)
       router.refresh()
       NotificationManager.success(`Simulados ${daysUntilMatch} dias até a próxima partida!`)
     } catch (error) {

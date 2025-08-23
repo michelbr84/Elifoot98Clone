@@ -2,18 +2,31 @@
 
 Um jogo completo de gerenciamento de futebol estilo anos 90, inspirado no clássico Elifoot 98. Gerencie seu clube, contrate jogadores, defina táticas e leve seu time ao topo!
 
-## 🎮 Status: 100% COMPLETO E JOGÁVEL!
+## 🎮 Status: EM DESENVOLVIMENTO - CORREÇÕES URGENTES
 
-Este jogo está **totalmente funcional** com todas as features implementadas:
+O jogo está **funcional** mas possui **problemas críticos** que precisam ser resolvidos:
 
-### ✅ Recursos Principais
+### ✅ Funcionando
+- **Sistema de Simulação**: Engine determinístico com comentários em português
+- **Interface Principal**: Tutorial interativo, sons e notificações visuais
+- **Simulação de Partidas**: TODAS as partidas da rodada são simuladas simultaneamente
+- **Sistema de Avanço**: Avançar dias e jogar próximas partidas
 
-- **Sistema de Simulação Completo**: Engine determinístico com comentários em português
-- **Gestão Total do Clube**: Finanças, transferências, treinos e táticas
-- **Interface Intuitiva**: Tutorial interativo, sons e notificações visuais
-- **Sistema de Progressão**: Temporadas completas com promoção/rebaixamento
-- **Saves Funcionais**: Sistema duplo (JSON + Banco de dados)
-- **Multi-idioma Preparado**: Estrutura i18n pronta (PT-BR default)
+### 🚨 Problemas Críticos Identificados
+
+#### Sistema de Progressão
+- ❌ **Final de Temporada**: Não detecta automaticamente as 22 rodadas
+- ❌ **Promoção/Rebaixamento**: Não está sendo executado
+- ❌ **Nova Temporada**: Não é gerada automaticamente
+
+#### Gerenciamento do Time
+- ❌ **Táticas**: Não é possível salvar, não afetam o resultado dos jogos
+- ❌ **Escalação**: Não é possível escolher elenco, não impacta simulação
+- ❌ **Transferências**: Funcionamento duvidoso, impacto no time não claro
+- ❌ **Treinos**: Efeito no desempenho não está claro
+
+#### Interface
+- ❌ **Todas as Divisões**: Aba não carrega (possível problema de performance)
 
 ## 🚀 Instalação Rápida
 
@@ -89,7 +102,7 @@ pnpm test             # Testes unitários
 pnpm e2e              # Testes E2E
 ```
 
-## 🎮 Features Implementadas
+## 🎮 Funcionalidades Atuais
 
 ### Sistema de Jogo
 - ✅ 4 divisões com 12 times cada
@@ -97,20 +110,20 @@ pnpm e2e              # Testes E2E
 - ✅ Engine de partida minuto-a-minuto
 - ✅ Sistema de lesões e suspensões
 - ✅ Cartões amarelos e vermelhos
-- ✅ Final de temporada com promoções/rebaixamentos
+- 🚨 **Final de temporada com promoções/rebaixamentos (NÃO FUNCIONA)**
 
 ### Gestão Financeira
 - ✅ Bilheteria automática por partida
 - ✅ Salários deduzidos semanalmente
 - ✅ Patrocínio mensal por divisão
-- ✅ Sistema de transferências com valores realistas
+- 🚨 **Sistema de transferências (FUNCIONAMENTO DUVIDOSO)**
 - ✅ Avisos de crise financeira
 
 ### Desenvolvimento de Jogadores
 - ✅ Envelhecimento anual
 - ✅ Redução de habilidade para veteranos
 - ✅ Geração de jogadores jovens
-- ✅ Sistema de treinos funcional
+- 🚨 **Sistema de treinos (EFEITO NÃO CLARO)**
 - ✅ Contratos com data de expiração
 
 ### Interface & UX
@@ -120,6 +133,23 @@ pnpm e2e              # Testes E2E
 - ✅ Sons para todas as ações
 - ✅ Atalhos de teclado completos
 - ✅ Loading states animados
+
+## 🔧 Correções Urgentes Necessárias
+
+### Prioridade 1: Sistema de Progressão
+- **Final de Temporada**: Debug do SeasonManager para detectar 22 rodadas
+- **Promoção/Rebaixamento**: Implementar execução automática
+- **Nova Temporada**: Gerar automaticamente após final
+
+### Prioridade 2: Gerenciamento do Time
+- **Táticas**: Implementar salvamento e impacto nas simulações
+- **Escalação**: Criar interface funcional de seleção de jogadores
+- **Transferências**: Verificar funcionamento e impacto no desempenho
+- **Treinos**: Clarificar e balancear efeito no desgaste
+
+### Prioridade 3: Interface
+- **Todas as Divisões**: Otimizar carregamento e performance
+- **Feedback Visual**: Melhorar indicadores de ações realizadas
 
 ## 🏗️ Estrutura do Projeto
 
@@ -174,7 +204,20 @@ Este projeto está sob a licença MIT. Veja [LICENSE](LICENSE) para mais detalhe
 
 ## 🐛 Problemas Conhecidos
 
-O jogo está 100% funcional! Pequenas melhorias planejadas:
+### 🚨 Problemas Críticos Atuais
+- **Final de temporada não funciona**: Sistema não detecta as 22 rodadas
+- **Táticas não salvam**: Não é possível salvar configurações de táticas
+- **Escalação não funciona**: Não é possível escolher jogadores para próxima partida
+- **Interface "Todas as Divisões" não carrega**: Possível problema de performance
+- **Transferências duvidosas**: Impacto no desempenho não está claro
+- **Treinos sem efeito claro**: Sistema de desgaste/fadiga não implementado
+
+### 📋 Melhorias Planejadas
+- Corrigir sistema de progressão (promoção/rebaixamento)
+- Implementar táticas funcionais
+- Criar sistema de escalação
+- Otimizar interface de divisões
+- Implementar desgaste de jogadores
 - Modo multiplayer hot-seat
 - Copa nacional
 - Mais idiomas na interface
@@ -189,4 +232,4 @@ O jogo está 100% funcional! Pequenas melhorias planejadas:
 
 **Desenvolvido com ❤️ para os fãs de jogos de gerenciamento de futebol**
 
-*Última atualização: Agosto 2025*
+*Última atualização: Dezembro 2024 - Correções urgentes identificadas*

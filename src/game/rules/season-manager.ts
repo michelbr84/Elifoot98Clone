@@ -22,7 +22,7 @@ export class SeasonManager {
 
     if (!activeSeason) return false
 
-    // Check if all fixtures are played
+    // Check if all fixtures are played (22 rounds = 22 * 6 = 132 fixtures per division)
     const hasUnplayedFixtures = activeSeason.divisions.some(
       division => division.fixtures.length > 0
     )
@@ -65,8 +65,10 @@ export class SeasonManager {
     }
 
     // Process promotions and relegations
-    const promotions: Array<{ clubId: string, fromDivisionId: string, toDivisionId: string }> = []
-    const relegations: Array<{ clubId: string, fromDivisionId: string, toDivisionId: string }> = []
+    const promotions: Array<{ clubId: string, fromDivisionId: string, toDivisionId: string, clubName: string }> = []
+    const relegations: Array<{ clubId: string, fromDivisionId: string, toDivisionId: string, clubName: string }> = []
+    const eliminatedClubs: Array<{ clubId: string, clubName: string }> = []
+    const firedManagers: Array<{ managerId: string, clubId: string, clubName: string }> = []
 
     const sortedDivisions = season.divisions.sort((a, b) => a.level - b.level)
 
@@ -74,8 +76,8 @@ export class SeasonManager {
       const division = sortedDivisions[i]
       const standings = standingsByDivision.get(division.id) || []
 
-      // Promotions (top 3 except for top division)
-      if (i > 0 && standings.length >= 3) {
+      // Promotions (top 3 except for Serie A)
+      if (division.level > 1 && standings.length >= 3) {
         const topThree = standings.slice(0, 3)
         const upperDivision = sortedDivisions[i - 1]
         
@@ -83,13 +85,14 @@ export class SeasonManager {
           promotions.push({
             clubId: standing.clubId,
             fromDivisionId: division.id,
-            toDivisionId: upperDivision.id
+            toDivisionId: upperDivision.id,
+            clubName: standing.club.name
           })
         }
       }
 
-      // Relegations (bottom 3 except for bottom division)
-      if (i < sortedDivisions.length - 1 && standings.length >= 3) {
+      // Relegations (bottom 3 except for Serie D)
+      if (division.level < 4 && standings.length >= 3) {
         const bottomThree = standings.slice(-3)
         const lowerDivision = sortedDivisions[i + 1]
         
@@ -97,13 +100,42 @@ export class SeasonManager {
           relegations.push({
             clubId: standing.clubId,
             fromDivisionId: division.id,
-            toDivisionId: lowerDivision.id
+            toDivisionId: lowerDivision.id,
+            clubName: standing.club.name
           })
+        }
+      }
+
+      // Serie D: Bottom 3 clubs are eliminated from the game
+      if (division.level === 4 && standings.length >= 3) {
+        const bottomThree = standings.slice(-3)
+        
+        for (const standing of bottomThree) {
+          eliminatedClubs.push({
+            clubId: standing.clubId,
+            clubName: standing.club.name
+          })
+
+          // Check if there's a human manager for this club
+          const manager = await this.prisma.manager.findFirst({
+            where: { 
+              clubId: standing.clubId,
+              isHuman: true
+            }
+          })
+
+          if (manager) {
+            firedManagers.push({
+              managerId: manager.id,
+              clubId: standing.clubId,
+              clubName: standing.club.name
+            })
+          }
         }
       }
     }
 
-    // Apply promotions and relegations
+    // Apply promotions
     for (const promotion of promotions) {
       await this.prisma.club.update({
         where: { id: promotion.clubId },
@@ -113,14 +145,15 @@ export class SeasonManager {
       await this.prisma.news.create({
         data: {
           type: 'general',
-          title: 'Promoção!',
-          content: `${season.standings.find(s => s.clubId === promotion.clubId)?.club.name} foi promovido para a divisão superior!`,
+          title: '🎉 Promoção!',
+          content: `${promotion.clubName} foi promovido para a divisão superior!`,
           clubId: promotion.clubId,
           date: new Date()
         }
       })
     }
 
+    // Apply relegations
     for (const relegation of relegations) {
       await this.prisma.club.update({
         where: { id: relegation.clubId },
@@ -130,9 +163,35 @@ export class SeasonManager {
       await this.prisma.news.create({
         data: {
           type: 'general',
-          title: 'Rebaixamento',
-          content: `${season.standings.find(s => s.clubId === relegation.clubId)?.club.name} foi rebaixado para a divisão inferior.`,
+          title: '📉 Rebaixamento',
+          content: `${relegation.clubName} foi rebaixado para a divisão inferior.`,
           clubId: relegation.clubId,
+          date: new Date()
+        }
+      })
+    }
+
+    // Handle eliminated clubs from Serie D
+    for (const eliminated of eliminatedClubs) {
+      await this.prisma.news.create({
+        data: {
+          type: 'general',
+          title: '❌ Eliminado do Jogo',
+          content: `${eliminated.clubName} foi eliminado do jogo após cair da Série D.`,
+          clubId: eliminated.clubId,
+          date: new Date()
+        }
+      })
+    }
+
+    // Handle fired managers
+    for (const fired of firedManagers) {
+      await this.prisma.news.create({
+        data: {
+          type: 'general',
+          title: '💼 Manager Despedido',
+          content: `O manager do ${fired.clubName} foi despedido após o clube ser eliminado da Série D.`,
+          clubId: fired.clubId,
           date: new Date()
         }
       })
@@ -174,12 +233,74 @@ export class SeasonManager {
     const standingsManager = new StandingsManager(this.prisma)
     await standingsManager.initializeSeasonStandings(newSeason.id)
 
+    // Reset player stats for new season
+    await this.prisma.player.updateMany({
+      data: {
+        fitness: 95,
+        form: 50,
+        morale: 50,
+        isInjured: false,
+        injuryDays: 0,
+        banMatches: 0,
+        yellowCards: 0,
+        redCards: 0,
+        goalsSeason: 0,
+        assistsSeason: 0
+      }
+    })
+
     // Season summary news
     await this.prisma.news.create({
       data: {
         type: 'general',
-        title: `Temporada ${season.year} Encerrada`,
-        content: `A temporada ${season.year} chegou ao fim. ${promotions.length} clubes foram promovidos e ${relegations.length} foram rebaixados. A nova temporada ${nextYear} já começou!`,
+        title: `🏆 Temporada ${season.year} Encerrada`,
+        content: `A temporada ${season.year} chegou ao fim. ${promotions.length} clubes foram promovidos, ${relegations.length} foram rebaixados, e ${eliminatedClubs.length} foram eliminados da Série D. A nova temporada ${nextYear} já começou!`,
+        date: new Date()
+      }
+    })
+
+    // Return information about fired managers for UI handling
+    return {
+      firedManagers,
+      eliminatedClubs,
+      promotions,
+      relegations
+    }
+  }
+
+  // Method to get available Serie D clubs for fired managers
+  async getAvailableSerieDClubs(): Promise<Array<{ id: string, name: string }>> {
+    const serieDClubs = await this.prisma.club.findMany({
+      where: {
+        division: {
+          level: 4,
+          season: {
+            isActive: true
+          }
+        }
+      },
+      select: {
+        id: true,
+        name: true
+      }
+    })
+
+    return serieDClubs
+  }
+
+  // Method to assign new club to fired manager
+  async assignNewClubToManager(managerId: string, newClubId: string) {
+    await this.prisma.manager.update({
+      where: { id: managerId },
+      data: { clubId: newClubId }
+    })
+
+    await this.prisma.news.create({
+      data: {
+        type: 'general',
+        title: '🔄 Novo Clube',
+        content: `Manager foi contratado por um novo clube da Série D.`,
+        clubId: newClubId,
         date: new Date()
       }
     })
