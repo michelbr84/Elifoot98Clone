@@ -3,7 +3,8 @@ import { GameLayout } from '@/src/ui/components/GameLayout'
 import { HomeView } from '@/src/ui/components/views/HomeView'
 import { SquadView } from '@/src/ui/components/views/SquadView'
 import { TableView } from '@/src/ui/components/views/TableView'
-import { getGameData } from './actions'
+import { SavesView } from '@/src/ui/components/views/SavesView'
+import { getGameData, listSaves } from './actions'
 
 export default async function GamePage({
   searchParams
@@ -17,6 +18,7 @@ export default async function GamePage({
   }
 
   const gameData = await getGameData(managerId)
+  const savesResult = view === 'saves' ? await listSaves(managerId) : null
 
   return (
     <GameLayout>
@@ -82,11 +84,11 @@ export default async function GamePage({
         </div>
       )}
       
-      {view === 'saves' && (
-        <div className="card-retro p-8 text-center">
-          <h1 className="text-2xl mb-4">SALVAR/CARREGAR</h1>
-          <p>Em construção...</p>
-        </div>
+      {view === 'saves' && savesResult?.success && (
+        <SavesView 
+          saves={savesResult.saves} 
+          managerId={managerId}
+        />
       )}
     </GameLayout>
   )

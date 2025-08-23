@@ -3,9 +3,11 @@
 import { PrismaClient } from '@prisma/client'
 import { MatchEngine } from '@/src/game/engine/match-engine'
 import { StandingsManager } from '@/src/game/rules/standings'
+import { SaveManager } from '@/src/game/save/save-manager'
 import dayjs from 'dayjs'
 
 const prisma = new PrismaClient()
+const saveManager = new SaveManager(prisma)
 
 export async function getGameData(managerId: string) {
   const manager = await prisma.manager.findUnique({
@@ -279,4 +281,48 @@ export async function startNewGame(managerName: string, clubId: string) {
   })
 
   return manager
+}
+
+export async function saveGame(
+  managerId: string,
+  saveName: string,
+  gameDate: Date
+) {
+  try {
+    const saveId = await saveManager.saveGame(managerId, saveName, gameDate)
+    return { success: true, saveId }
+  } catch (error) {
+    console.error('Error saving game:', error)
+    return { success: false, error: (error as Error).message }
+  }
+}
+
+export async function loadGame(saveId: string) {
+  try {
+    const saveData = await saveManager.loadGame(saveId)
+    return { success: true, saveData }
+  } catch (error) {
+    console.error('Error loading game:', error)
+    return { success: false, error: (error as Error).message }
+  }
+}
+
+export async function listSaves(managerId?: string) {
+  try {
+    const saves = await saveManager.listSaves(managerId)
+    return { success: true, saves }
+  } catch (error) {
+    console.error('Error listing saves:', error)
+    return { success: false, error: (error as Error).message }
+  }
+}
+
+export async function deleteSave(saveId: string) {
+  try {
+    await saveManager.deleteSave(saveId)
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting save:', error)
+    return { success: false, error: (error as Error).message }
+  }
 }
