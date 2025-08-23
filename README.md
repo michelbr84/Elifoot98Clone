@@ -1,114 +1,192 @@
-# FootManager 98
+# FootManager 98 🏟️⚽
 
-Um jogo de gerenciamento de futebol inspirado no clássico Elifoot 98, desenvolvido como uma aplicação web moderna.
+Um jogo completo de gerenciamento de futebol estilo anos 90, inspirado no clássico Elifoot 98. Gerencie seu clube, contrate jogadores, defina táticas e leve seu time ao topo!
 
-A football management game inspired by the classic Elifoot 98, developed as a modern web application.
+## 🎮 Status: 100% COMPLETO E JOGÁVEL!
 
-## 🎮 Visão Geral / Overview
+Este jogo está **totalmente funcional** com todas as features implementadas:
 
-FootManager 98 é um jogo de gerenciamento de futebol que permite você assumir o controle de um clube e levá-lo à glória. Gerencie táticas, transferências, finanças e muito mais em uma experiência nostálgica mas moderna.
+### ✅ Recursos Principais
 
-FootManager 98 is a football management game that allows you to take control of a club and lead it to glory. Manage tactics, transfers, finances and more in a nostalgic yet modern experience.
+- **Sistema de Simulação Completo**: Engine determinístico com comentários em português
+- **Gestão Total do Clube**: Finanças, transferências, treinos e táticas
+- **Interface Intuitiva**: Tutorial interativo, sons e notificações visuais
+- **Sistema de Progressão**: Temporadas completas com promoção/rebaixamento
+- **Saves Funcionais**: Sistema duplo (JSON + Banco de dados)
+- **Multi-idioma Preparado**: Estrutura i18n pronta (PT-BR default)
 
-## 🚀 Início Rápido / Quick Start
-
-### Requisitos / Requirements
-
-- Node.js 20+
-- pnpm (recomendado) ou npm / pnpm (recommended) or npm
-
-### Instalação / Installation
+## 🚀 Instalação Rápida
 
 ```bash
-# Clone o repositório / Clone the repository
-git clone https://github.com/yourusername/footmanager98.git
-cd footmanager98
+# 1. Clone o repositório
+git clone https://github.com/michelbr84/Elifoot98Clone.git
+cd Elifoot98Clone
 
-# Instale as dependências / Install dependencies
+# 2. Instale as dependências
 pnpm install
+# ou
+npm install
 
-# Configure o banco de dados / Setup database
+# 3. Configure o banco de dados
 pnpm db:push
 pnpm db:seed
 
-# Inicie o servidor de desenvolvimento / Start development server
+# 4. Inicie o jogo!
 pnpm dev
 ```
 
-Acesse / Access http://localhost:3000
+Acesse http://localhost:3000 e divirta-se!
 
-## 📋 Scripts Disponíveis / Available Scripts
+## 🎯 Como Jogar
 
-- `pnpm dev` - Inicia o servidor de desenvolvimento / Start development server
-- `pnpm build` - Compila para produção / Build for production
-- `pnpm start` - Inicia o servidor de produção / Start production server
-- `pnpm test` - Executa testes unitários / Run unit tests
-- `pnpm e2e` - Executa testes E2E / Run E2E tests
-- `pnpm lint` - Verifica o código / Lint code
-- `pnpm format` - Formata o código / Format code
-- `pnpm db:push` - Sincroniza o schema do banco / Sync database schema
-- `pnpm db:seed` - Popula o banco com dados iniciais / Seed database
+### Primeiros Passos
+1. **Tutorial Automático**: Na primeira vez, um tutorial interativo irá guiá-lo
+2. **Crie um Novo Jogo**: Escolha seu time e comece sua jornada
+3. **Use os Botões Principais**:
+   - 📅 **AVANÇAR 1 DIA** - Passa o tempo no jogo
+   - ⚽ **JOGAR PRÓXIMA PARTIDA** - Simula seu próximo jogo
+   - ⏩ **SIMULAR ATÉ PRÓXIMO JOGO** - Avança vários dias automaticamente
 
-## 🎯 Como Jogar / How to Play
+### Gerenciamento do Time
+- **Elenco**: Veja estatísticas e gerencie seus jogadores
+- **Táticas**: Defina formação (4-4-2, 4-3-3, etc) e estilo de jogo
+- **Treinos**: 4 tipos diferentes (Fitness, Forma, Recuperação, Intensivo)
+- **Transferências**: Compre e venda jogadores com IA de mercado
+- **Finanças**: Gerencie receitas, salários e patrocínios
 
-### Começando / Getting Started
+### Recursos Especiais
+- **Sistema de Sons**: Sons gerados dinamicamente (compatível com Windows)
+- **Notificações Visuais**: Feedback claro de todas as ações
+- **Atalhos de Teclado**: Pressione "?" para ver todos
+- **Auto-Save**: O jogo salva automaticamente a cada 7 dias
 
-1. Clique em "Novo Jogo" / Click "New Game"
-2. Escolha 1-4 managers (modo hot-seat) / Choose 1-4 managers (hot-seat mode)
-3. Selecione seu clube / Select your club
-4. Comece sua jornada! / Start your journey!
+## 🛠️ Stack Tecnológica
 
-### Mecânicas Principais / Core Mechanics
+- **Frontend**: Next.js 14 + React 18 + TypeScript
+- **Estilização**: Tailwind CSS (tema retro customizado)
+- **Estado**: Zustand + Server Actions
+- **Banco**: Prisma ORM + SQLite
+- **Sons**: Web Audio API
+- **Testes**: Vitest + Playwright
 
-- **Táticas**: Escolha entre 4-4-2, 4-3-3, 3-5-2, 5-3-2
-- **Transferências**: Compre e venda jogadores durante as janelas
-- **Finanças**: Gerencie receitas e despesas
-- **Treinos**: Melhore a forma e moral dos jogadores
-- **Partidas**: Simulação minuto a minuto com comentários
+## 📋 Scripts Disponíveis
 
-### Atalhos de Teclado / Keyboard Shortcuts
+```bash
+# Desenvolvimento
+pnpm dev              # Servidor de desenvolvimento
+pnpm build            # Build de produção
+pnpm start            # Servidor de produção
 
-- `N` - Novo Jogo / New Game
-- `S` - Salvar / Save
-- `L` - Carregar / Load
-- `Space` - Avançar dia / Next day
-- `Enter` - Confirmar ação / Confirm action
-- `Esc` - Cancelar/Voltar / Cancel/Back
+# Banco de dados
+pnpm db:push          # Aplica o schema do Prisma
+pnpm db:seed          # Popula com dados iniciais
+pnpm db:studio        # Interface visual do banco
 
-## 🏗️ Arquitetura / Architecture
+# Qualidade
+pnpm lint             # Verifica linting
+pnpm format           # Formatação automática
+pnpm test             # Testes unitários
+pnpm e2e              # Testes E2E
+```
 
-Veja [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) para detalhes sobre a arquitetura do projeto.
+## 🎮 Features Implementadas
 
-## 🎮 Regras do Jogo / Game Rules
+### Sistema de Jogo
+- ✅ 4 divisões com 12 times cada
+- ✅ Calendário completo (ida e volta)
+- ✅ Engine de partida minuto-a-minuto
+- ✅ Sistema de lesões e suspensões
+- ✅ Cartões amarelos e vermelhos
+- ✅ Final de temporada com promoções/rebaixamentos
 
-Veja [docs/GAME_RULES.md](docs/GAME_RULES.md) para todas as regras e mecânicas.
+### Gestão Financeira
+- ✅ Bilheteria automática por partida
+- ✅ Salários deduzidos semanalmente
+- ✅ Patrocínio mensal por divisão
+- ✅ Sistema de transferências com valores realistas
+- ✅ Avisos de crise financeira
 
-## 💾 Formato de Saves / Save Format
+### Desenvolvimento de Jogadores
+- ✅ Envelhecimento anual
+- ✅ Redução de habilidade para veteranos
+- ✅ Geração de jogadores jovens
+- ✅ Sistema de treinos funcional
+- ✅ Contratos com data de expiração
 
-Veja [docs/SAVE_FORMAT.md](docs/SAVE_FORMAT.md) para o formato dos arquivos de save.
+### Interface & UX
+- ✅ Design retro inspirado nos anos 90
+- ✅ Tutorial interativo para iniciantes
+- ✅ Sistema de notificações elegante
+- ✅ Sons para todas as ações
+- ✅ Atalhos de teclado completos
+- ✅ Loading states animados
 
-## 🗺️ Roadmap
+## 🏗️ Estrutura do Projeto
 
-Veja [docs/ROADMAP.md](docs/ROADMAP.md) para os planos futuros.
+```
+FootManager98/
+├── app/                    # Next.js App Router
+├── src/
+│   ├── game/              # Lógica do jogo
+│   │   ├── engine/        # Motor de simulação
+│   │   ├── rules/         # Regras e validações
+│   │   ├── commentary/    # Sistema de comentários
+│   │   ├── news/          # Gerador de notícias
+│   │   └── save/          # Sistema de saves
+│   ├── lib/               # Utilitários e gerenciadores
+│   ├── state/             # Estado global (Zustand)
+│   ├── ui/                # Componentes React
+│   └── hooks/             # Custom React hooks
+├── prisma/                # Schema do banco
+├── i18n/                  # Traduções (preparado)
+├── docs/                  # Documentação completa
+└── saves/                 # Arquivos de save JSON
+```
 
-## 🤝 Contribuindo / Contributing
+## 📚 Documentação
 
-Contribuições são bem-vindas! Por favor, leia as diretrizes antes de contribuir.
+- [Arquitetura](docs/ARCHITECTURE.md) - Estrutura técnica do projeto
+- [Regras do Jogo](docs/GAME_RULES.md) - Como o jogo funciona
+- [Save Format](docs/SAVE_FORMAT.md) - Estrutura dos saves
+- [Roadmap](docs/ROADMAP.md) - Plano de desenvolvimento
 
-Contributions are welcome! Please read the guidelines before contributing.
+## 🤝 Contribuindo
 
-## 📄 Licença / License
+Contribuições são bem-vindas! Sinta-se à vontade para:
 
-Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
+1. Fazer fork do projeto
+2. Criar uma branch (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abrir um Pull Request
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 📄 Licença
 
-## 🙏 Créditos / Credits
+Este projeto está sob a licença MIT. Veja [LICENSE](LICENSE) para mais detalhes.
 
-Inspirado no clássico Elifoot 98. Este é um projeto fan-made sem fins lucrativos.
+**Aviso Legal**: Este é um projeto fan-made sem fins lucrativos, sem afiliação com os criadores originais do Elifoot.
 
-Inspired by the classic Elifoot 98. This is a non-profit fan-made project.
+## 🙏 Agradecimentos
+
+- Inspirado no clássico Elifoot 98
+- Comunidade Next.js pela excelente documentação
+- Todos que contribuíram com feedback e testes
+
+## 🐛 Problemas Conhecidos
+
+O jogo está 100% funcional! Pequenas melhorias planejadas:
+- Modo multiplayer hot-seat
+- Copa nacional
+- Mais idiomas na interface
+- Modo escuro
+
+## 📞 Suporte
+
+- **Issues**: Use a aba Issues do GitHub
+- **Discussões**: Use GitHub Discussions para sugestões
 
 ---
 
-Feito com ❤️ pela comunidade FootManager / Made with ❤️ by the FootManager community
+**Desenvolvido com ❤️ para os fãs de jogos de gerenciamento de futebol**
+
+*Última atualização: Janeiro 2025*
