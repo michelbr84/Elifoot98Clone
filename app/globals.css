@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 240 240;
+    --foreground: 0 0 0;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-retro-bg text-black;
+  }
+}
+
+@layer components {
+  .btn-retro {
+    @apply px-4 py-2 border-2 border-black bg-retro-gray hover:bg-retro-dark hover:text-white transition-colors cursor-pointer font-mono uppercase;
+  }
+
+  .btn-primary {
+    @apply btn-retro bg-retro-blue text-white hover:bg-blue-700;
+  }
+
+  .btn-success {
+    @apply btn-retro bg-retro-green text-black hover:bg-green-600;
+  }
+
+  .btn-danger {
+    @apply btn-retro bg-retro-red text-white hover:bg-red-700;
+  }
+
+  .input-retro {
+    @apply px-2 py-1 border-2 border-black bg-white font-mono;
+  }
+
+  .select-retro {
+    @apply px-2 py-1 border-2 border-black bg-white font-mono cursor-pointer;
+  }
+
+  .table-retro {
+    @apply w-full border-collapse border-2 border-black;
+  }
+
+  .table-retro th {
+    @apply bg-retro-dark text-white px-2 py-1 border border-black font-mono uppercase text-left;
+  }
+
+  .table-retro td {
+    @apply px-2 py-1 border border-black font-mono;
+  }
+
+  .table-retro tr:nth-child(even) {
+    @apply bg-retro-gray;
+  }
+
+  .card-retro {
+    @apply border-2 border-black bg-white p-4;
+  }
+
+  .menu-item {
+    @apply block px-4 py-2 hover:bg-retro-gray cursor-pointer font-mono uppercase transition-colors;
+  }
+
+  .menu-item-active {
+    @apply bg-retro-dark text-white;
+  }
+}
