@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useGameStore } from '@/src/state/useGameStore'
+import { saveTactic } from '@/app/game/actions'
+import { useRouter } from 'next/navigation'
 
 interface Tactic {
   formation: string
@@ -19,6 +21,7 @@ const FORMATIONS = [
 
 export function TacticsView() {
   const { currentManager } = useGameStore()
+  const router = useRouter()
   const [tactic, setTactic] = useState<Tactic>({
     formation: '4-4-2',
     aggression: 50,
@@ -26,6 +29,7 @@ export function TacticsView() {
     passingStyle: 'mixed',
   })
   const [saved, setSaved] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Carregar tática salva do manager
   useEffect(() => {
@@ -43,9 +47,19 @@ export function TacticsView() {
   }, [currentManager])
 
   const handleSave = async () => {
-    // TODO: Implementar server action para salvar tática
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    if (!currentManager?.id) return
+    
+    setIsLoading(true)
+    try {
+      await saveTactic(currentManager.id, tactic)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+      router.refresh()
+    } catch (error) {
+      alert('Erro ao salvar tática')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getFormationDisplay = (formation: string) => {
@@ -174,8 +188,12 @@ export function TacticsView() {
 
         {/* Botões */}
         <div className="flex gap-4">
-          <button className="btn-primary" onClick={handleSave}>
-            SALVAR TÁTICA
+          <button 
+            className="btn-primary" 
+            onClick={handleSave}
+            disabled={isLoading}
+          >
+            {isLoading ? 'SALVANDO...' : 'SALVAR TÁTICA'}
           </button>
           {saved && <span className="text-green-600 font-mono self-center">✓ Salvo!</span>}
         </div>

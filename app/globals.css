@@ -26,6 +26,10 @@
     @apply btn-retro bg-retro-blue text-white hover:bg-blue-700;
   }
 
+  .btn-danger {
+    @apply btn-retro bg-retro-red text-white hover:bg-red-700;
+  }
+
   .btn-success {
     @apply btn-retro bg-retro-green text-black hover:bg-green-600;
   }

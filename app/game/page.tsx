@@ -8,8 +8,10 @@ import { FixturesView } from '@/src/ui/components/views/FixturesView'
 import { FinanceView } from '@/src/ui/components/views/FinanceView'
 import { NewsView } from '@/src/ui/components/views/NewsView'
 import { TrainingView } from '@/src/ui/components/views/TrainingView'
+import { TransfersView } from '@/src/ui/components/views/TransfersView'
 import { SavesView } from '@/src/ui/components/views/SavesView'
-import { getGameData, listSaves, getFinanceData, getNews } from './actions'
+import { SettingsView } from '@/src/ui/components/views/SettingsView'
+import { getGameData, listSaves, getFinanceData, getNews, getTransferData } from './actions'
 
 export default async function GamePage({
   searchParams
@@ -26,6 +28,7 @@ export default async function GamePage({
   const savesResult = view === 'saves' ? await listSaves(managerId) : null
   const financeData = view === 'finance' ? await getFinanceData(managerId) : null
   const news = view === 'news' ? await getNews(managerId) : null
+  const transferData = view === 'transfers' ? await getTransferData(managerId) : null
 
   return (
     <GameLayout>
@@ -59,11 +62,8 @@ export default async function GamePage({
         />
       )}
       
-      {view === 'transfers' && (
-        <div className="card-retro p-8 text-center">
-          <h1 className="text-2xl mb-4">TRANSFERÊNCIAS</h1>
-          <p>Em construção...</p>
-        </div>
+      {view === 'transfers' && transferData && (
+        <TransfersView {...transferData} />
       )}
       
       {view === 'training' && (
@@ -86,6 +86,10 @@ export default async function GamePage({
           saves={savesResult.saves} 
           managerId={managerId}
         />
+      )}
+      
+      {view === 'settings' && (
+        <SettingsView managerId={managerId} />
       )}
     </GameLayout>
   )

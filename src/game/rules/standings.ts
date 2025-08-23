@@ -241,4 +241,35 @@ export class StandingsManager {
       }
     })
   }
+
+  async initializeSeasonStandings(seasonId: string) {
+    const divisions = await this.prisma.division.findMany({
+      where: { seasonId },
+      include: { clubs: true }
+    })
+
+    for (const division of divisions) {
+      for (const club of division.clubs) {
+        await this.prisma.standing.create({
+          data: {
+            seasonId,
+            clubId: club.id,
+            played: 0,
+            won: 0,
+            drawn: 0,
+            lost: 0,
+            goalsFor: 0,
+            goalsAgainst: 0,
+            points: 0,
+            position: 0
+          }
+        })
+      }
+    }
+
+    // Update initial positions
+    for (const division of divisions) {
+      await this.updateDivisionPositions(seasonId, division.id)
+    }
+  }
 }

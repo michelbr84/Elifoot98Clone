@@ -1,15 +1,27 @@
 'use server'
 
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Player } from '@prisma/client'
 import { MatchEngine } from '@/src/game/engine/match-engine'
 import { StandingsManager } from '@/src/game/rules/standings'
 import { SaveManager } from '@/src/game/save/save-manager'
 import { NewsGenerator } from '@/src/game/news/news-generator'
 import { LineupValidator } from '@/src/game/rules/lineup-validator'
+import { SeasonManager } from '@/src/game/rules/season-manager'
 import dayjs from 'dayjs'
 
 const prisma = new PrismaClient()
 const saveManager = new SaveManager(prisma)
+
+// Helper function to generate player names
+function generatePlayerName(): string {
+  const firstNames = ['João', 'Pedro', 'Lucas', 'Gabriel', 'Rafael', 'Bruno', 'Felipe', 'Carlos', 'André', 'Marcelo']
+  const lastNames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Lima', 'Costa', 'Ferreira', 'Alves', 'Pereira', 'Rodrigues']
+  
+  const first = firstNames[Math.floor(Math.random() * firstNames.length)]
+  const last = lastNames[Math.floor(Math.random() * lastNames.length)]
+  
+  return `${first} ${last}`
+}
 
 export async function getGameData(managerId: string) {
   const manager = await prisma.manager.findUnique({
@@ -131,6 +143,22 @@ export async function getGameData(managerId: string) {
 export async function advanceDay(managerId: string, currentDate: Date) {
   const newDate = dayjs(currentDate).add(1, 'day').toDate()
   
+  const manager = await prisma.manager.findUnique({
+    where: { id: managerId },
+    include: { 
+      club: {
+        include: {
+          players: true,
+          division: true
+        }
+      }
+    }
+  })
+
+  if (!manager || !manager.club) {
+    throw new Error('Manager or club not found')
+  }
+
   // Update injured players
   await prisma.player.updateMany({
     where: {
@@ -173,6 +201,162 @@ export async function advanceDay(managerId: string, currentDate: Date) {
       fitness: { increment: 2 }
     }
   })
+
+  // Check if it's payday (every 7 days)
+  const dayOfYear = dayjs(newDate).dayOfYear()
+  if (dayOfYear % 7 === 0) {
+    // Calculate total wages
+    const totalWages = manager.club.players.reduce((sum, player) => sum + player.wage, 0)
+    
+    // Deduct wages from budget
+    await prisma.club.update({
+      where: { id: manager.club.id },
+      data: {
+        budget: { decrement: totalWages }
+      }
+    })
+
+    // Record financial transaction
+    await prisma.finance.create({
+      data: {
+        clubId: manager.club.id,
+        type: 'expense',
+        category: 'salary',
+        description: `Folha salarial semanal`,
+        amount: totalWages
+      }
+    })
+
+    // Check financial health
+    const updatedClub = await prisma.club.findUnique({
+      where: { id: manager.club.id }
+    })
+
+    if (updatedClub && updatedClub.budget < 0) {
+      const newsGenerator = new NewsGenerator(prisma)
+      await newsGenerator.createFinancialNews(manager.club.id, 'crisis')
+    }
+  }
+
+  // Check if it's time for monthly sponsorship (every 30 days)
+  if (dayOfYear % 30 === 0) {
+    const sponsorshipValue = (5 - manager.club.division.level) * 100000 / 12
+    
+    await prisma.club.update({
+      where: { id: manager.club.id },
+      data: {
+        budget: { increment: sponsorshipValue }
+      }
+    })
+
+    await prisma.finance.create({
+      data: {
+        clubId: manager.club.id,
+        type: 'income',
+        category: 'sponsor',
+        description: `Patrocínio mensal`,
+        amount: sponsorshipValue
+      }
+    })
+  }
+
+  // Check for player birthdays and contract expiries (once per year)
+  const currentMonth = dayjs(newDate).month()
+  const previousMonth = dayjs(currentDate).month()
+  
+  // New year - age players and check contracts
+  if (currentMonth === 0 && previousMonth === 11) {
+    // Age all players
+    await prisma.player.updateMany({
+      data: {
+        age: { increment: 1 }
+      }
+    })
+
+    // Decrease overall for players over 30
+    const olderPlayers = await prisma.player.findMany({
+      where: { age: { gt: 30 } }
+    })
+
+    for (const player of olderPlayers) {
+      const decrease = player.age > 35 ? 3 : player.age > 32 ? 2 : 1
+      await prisma.player.update({
+        where: { id: player.id },
+        data: {
+          overall: Math.max(1, player.overall - decrease)
+        }
+      })
+    }
+
+    // Check for expiring contracts
+    const expiringContracts = await prisma.player.findMany({
+      where: {
+        contractEndsAt: {
+          lte: dayjs(newDate).add(6, 'months').toDate()
+        }
+      },
+      include: { club: true }
+    })
+
+    for (const player of expiringContracts) {
+      await prisma.news.create({
+        data: {
+          type: 'general',
+          title: 'Contrato expirando',
+          content: `${player.name} do ${player.club?.name} tem contrato expirando em breve.`,
+          clubId: player.clubId,
+          date: newDate
+        }
+      })
+    }
+
+    // Generate young players for each club (simple version)
+    const allClubs = await prisma.club.findMany()
+    
+    for (const club of allClubs) {
+      // Each club gets 1-2 youth players per year
+      const numYouth = Math.floor(Math.random() * 2) + 1
+      
+      for (let i = 0; i < numYouth; i++) {
+        const position = ['GK', 'DF', 'MF', 'FW'][Math.floor(Math.random() * 4)]
+        const overall = Math.floor(Math.random() * 20) + 40 // 40-60 overall
+        
+        await prisma.player.create({
+          data: {
+            name: generatePlayerName(),
+            age: 17 + Math.floor(Math.random() * 3), // 17-19 years
+            nationality: 'Brasil',
+            position,
+            overall,
+            fitness: 90 + Math.floor(Math.random() * 10),
+            form: 50,
+            morale: 70,
+            value: overall * 5000,
+            wage: overall * 100,
+            contractEndsAt: dayjs(newDate).add(3, 'years').toDate(),
+            clubId: club.id
+          }
+        })
+      }
+    }
+  }
+
+  // Check for season end
+  const seasonManager = new SeasonManager(prisma)
+  const seasonEnded = await seasonManager.checkAndProcessSeasonEnd(newDate)
+  
+  if (seasonEnded) {
+    // Notify about new season
+    await prisma.news.create({
+      data: {
+        type: 'general',
+        title: 'Nova Temporada!',
+        content: 'Uma nova temporada começou. Boa sorte!',
+        clubId: manager.club.id,
+        date: newDate
+      }
+    })
+  }
 
   return newDate
 }
@@ -222,9 +406,28 @@ export async function playNextMatch(managerId: string) {
   // Prepare teams for match engine
   const isHome = fixture.homeClubId === manager.clubId
   
+  // Get tactics for both teams
+  const homeTactic = await prisma.tactic.findFirst({
+    where: {
+      manager: {
+        clubId: fixture.homeClubId
+      },
+      isActive: true
+    }
+  })
+  
+  const awayTactic = await prisma.tactic.findFirst({
+    where: {
+      manager: {
+        clubId: fixture.awayClubId
+      },
+      isActive: true
+    }
+  })
+  
   // Validate and build lineups
-  const homeFormation = '4-4-2' // TODO: Get from tactics
-  const awayFormation = '4-4-2'
+  const homeFormation = homeTactic?.formation || '4-4-2'
+  const awayFormation = awayTactic?.formation || '4-4-2'
   
   const homeLineupValidation = LineupValidator.validate(fixture.homeClub.players, homeFormation)
   const awayLineupValidation = LineupValidator.validate(fixture.awayClub.players, awayFormation)
@@ -246,8 +449,8 @@ export async function playNextMatch(managerId: string) {
     name: fixture.homeClub.name,
     players: homePlayers,
     formation: homeFormation,
-    aggression: 50,
-    pressure: 50,
+    aggression: homeTactic?.aggression || 50,
+    pressure: homeTactic?.pressure || 50,
     isHome: true
   }
 
@@ -255,8 +458,8 @@ export async function playNextMatch(managerId: string) {
     name: fixture.awayClub.name,
     players: awayPlayers,
     formation: awayFormation,
-    aggression: 50,
-    pressure: 50,
+    aggression: awayTactic?.aggression || 50,
+    pressure: awayTactic?.pressure || 50,
     isHome: false
   }
 
@@ -596,4 +799,256 @@ export async function getNews(managerId: string) {
     content: n.content,
     clubId: n.clubId
   }))
+}
+
+export async function getTransferData(managerId: string) {
+  const manager = await prisma.manager.findUnique({
+    where: { id: managerId },
+    include: {
+      club: {
+        include: {
+          players: {
+            orderBy: { overall: 'desc' }
+          }
+        }
+      }
+    }
+  })
+
+  if (!manager || !manager.club) {
+    throw new Error('Manager or club not found')
+  }
+
+  // Get other clubs in same division with their players
+  const otherClubs = await prisma.club.findMany({
+    where: {
+      divisionId: manager.club.divisionId,
+      id: { not: manager.club.id }
+    },
+    include: {
+      players: {
+        where: {
+          contractEndsAt: { gt: new Date() } // Only players with valid contracts
+        },
+        orderBy: { overall: 'desc' }
+      }
+    }
+  })
+
+  return {
+    myClub: manager.club,
+    otherClubs,
+    budget: manager.club.budget
+  }
+}
+
+export async function makeTransferOffer(fromClubId: string, playerId: string, offerAmount: number) {
+  const player = await prisma.player.findUnique({
+    where: { id: playerId },
+    include: { club: true }
+  })
+
+  if (!player || !player.clubId) {
+    throw new Error('Player not found')
+  }
+
+  const fromClub = await prisma.club.findUnique({
+    where: { id: fromClubId }
+  })
+
+  if (!fromClub) {
+    throw new Error('Club not found')
+  }
+
+  if (fromClub.budget < offerAmount) {
+    throw new Error('Insufficient funds')
+  }
+
+  // Simple AI: accept if offer is >= player value
+  const playerValue = calculatePlayerValue(player)
+  const accepted = offerAmount >= playerValue * 0.9 // Accept if 90% or more of value
+
+  if (accepted) {
+    // Create transfer
+    const transfer = await prisma.transfer.create({
+      data: {
+        playerId: playerId,
+        fromClubId: player.clubId,
+        toClubId: fromClubId,
+        fee: offerAmount,
+        wage: player.wage,
+        contractYears: 3,
+        status: 'accepted',
+        transferDate: new Date()
+      }
+    })
+
+    // Update player's club
+    await prisma.player.update({
+      where: { id: playerId },
+      data: {
+        clubId: fromClubId,
+        contractEndsAt: new Date(Date.now() + 3 * 365 * 24 * 60 * 60 * 1000) // 3 years
+      }
+    })
+
+    // Update budgets
+    await prisma.club.update({
+      where: { id: fromClubId },
+      data: { budget: { decrement: offerAmount } }
+    })
+
+    await prisma.club.update({
+      where: { id: player.clubId },
+      data: { budget: { increment: offerAmount } }
+    })
+
+    // Create news
+    const newsGenerator = new NewsGenerator(prisma)
+    await newsGenerator.createTransferNews(transfer.id)
+
+    return { success: true, transfer }
+  } else {
+    // Reject offer
+    await prisma.transfer.create({
+      data: {
+        playerId: playerId,
+        fromClubId: player.clubId,
+        toClubId: fromClubId,
+        fee: offerAmount,
+        wage: player.wage,
+        contractYears: 3,
+        status: 'rejected'
+      }
+    })
+
+    return { success: false, message: 'Oferta recusada' }
+  }
+}
+
+function calculatePlayerValue(player: Player): number {
+  let value = player.overall * 10000
+  
+  if (player.age < 25) value *= 1.5
+  else if (player.age > 30) value *= 0.8
+  else if (player.age > 35) value *= 0.5
+  
+  if (player.position === 'FW') value *= 1.2
+  else if (player.position === 'GK') value *= 0.9
+  
+  return Math.round(value)
+}
+
+export async function saveTactic(managerId: string, tactic: {
+  formation: string
+  aggression: number
+  pressure: number
+  passingStyle: string
+}) {
+  // Deactivate all current tactics
+  await prisma.tactic.updateMany({
+    where: { managerId },
+    data: { isActive: false }
+  })
+
+  // Create or update the tactic
+  const savedTactic = await prisma.tactic.create({
+    data: {
+      managerId,
+      name: `Tática ${tactic.formation}`,
+      formation: tactic.formation,
+      aggression: tactic.aggression,
+      pressure: tactic.pressure,
+      passingStyle: tactic.passingStyle,
+      isActive: true
+    }
+  })
+
+  return { success: true, tactic: savedTactic }
+}
+
+export async function applyTraining(
+  playerIds: string[], 
+  trainingType: 'fitness' | 'form' | 'recovery' | 'intensive'
+) {
+  const updates: any = {}
+
+  switch (trainingType) {
+    case 'fitness':
+      updates.fitness = { increment: 10 }
+      updates.form = { increment: 5 }
+      break
+    case 'form':
+      updates.form = { increment: 15 }
+      updates.fitness = { increment: 5 }
+      break
+    case 'recovery':
+      // Only for injured players
+      updates.fitness = { increment: 20 }
+      updates.injuryDays = { decrement: 2 }
+      break
+    case 'intensive':
+      updates.form = { increment: 20 }
+      updates.fitness = { decrement: 10 }
+      break
+  }
+
+  // Apply training to selected players
+  const updatePromises = playerIds.map(async (playerId) => {
+    const player = await prisma.player.findUnique({
+      where: { id: playerId }
+    })
+
+    if (!player) return
+
+    // For recovery training, only apply to injured players
+    if (trainingType === 'recovery' && !player.isInjured) {
+      return
+    }
+
+    // Calculate new values with caps
+    const newFitness = Math.min(100, Math.max(0, 
+      player.fitness + (updates.fitness?.increment || 0) - (updates.fitness?.decrement || 0)
+    ))
+    const newForm = Math.min(100, Math.max(0,
+      player.form + (updates.form?.increment || 0) - (updates.form?.decrement || 0)
+    ))
+
+    await prisma.player.update({
+      where: { id: playerId },
+      data: {
+        fitness: newFitness,
+        form: newForm,
+        injuryDays: player.isInjured && trainingType === 'recovery' 
+          ? Math.max(0, player.injuryDays - 2)
+          : player.injuryDays
+      }
+    })
+
+    // Clear injury if fully recovered
+    if (player.isInjured && player.injuryDays <= 2 && trainingType === 'recovery') {
+      await prisma.player.update({
+        where: { id: playerId },
+        data: {
+          isInjured: false,
+          injuryDays: 0
+        }
+      })
+    }
+
+    // Record training in database
+    await prisma.training.create({
+      data: {
+        playerId,
+        type: trainingType,
+        date: new Date(),
+        fitnessGain: newFitness - player.fitness,
+        formGain: newForm - player.form
+      }
+    })
+  })
+
+  await Promise.all(updatePromises)
+
+  return { success: true, playersTraiCount: playerIds.length }
 }

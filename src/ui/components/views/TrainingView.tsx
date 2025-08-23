@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { Player } from '@prisma/client'
+import { applyTraining } from '@/app/game/actions'
+import { useRouter } from 'next/navigation'
 
 interface TrainingViewProps {
   players: Player[]
@@ -13,6 +15,7 @@ export function TrainingView({ players }: TrainingViewProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([])
   const [trainingType, setTrainingType] = useState<TrainingType>('fitness')
   const [isTraining, setIsTraining] = useState(false)
+  const router = useRouter()
 
   const handleSelectAll = () => {
     if (selectedPlayers.length === players.length) {
@@ -37,12 +40,16 @@ export function TrainingView({ players }: TrainingViewProps) {
     }
 
     setIsTraining(true)
-    // TODO: Implement server action to apply training
-    setTimeout(() => {
+    try {
+      await applyTraining(selectedPlayers, trainingType)
       alert(`Treino concluído! ${selectedPlayers.length} jogadores treinados.`)
-      setIsTraining(false)
       setSelectedPlayers([])
-    }, 1000)
+      router.refresh()
+    } catch (error) {
+      alert('Erro ao aplicar treino')
+    } finally {
+      setIsTraining(false)
+    }
   }
 
   const getTrainingEffect = (type: TrainingType) => {

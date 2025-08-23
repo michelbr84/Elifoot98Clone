@@ -6,6 +6,7 @@ import { SaveInfo } from '@/src/game/save/save-manager'
 import dayjs from 'dayjs'
 import { saveGame, loadGame, deleteSave } from '@/app/game/actions'
 import { useRouter } from 'next/navigation'
+import { ConfirmDialog } from '@/src/ui/components/ConfirmDialog'
 
 interface SavesViewProps {
   saves: SaveInfo[]
@@ -16,6 +17,8 @@ export function SavesView({ saves, managerId }: SavesViewProps) {
   const [saveName, setSaveName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [saveToDelete, setSaveToDelete] = useState<SaveInfo | null>(null)
   const { currentDate } = useGameStore()
   const router = useRouter()
 
@@ -58,13 +61,16 @@ export function SavesView({ saves, managerId }: SavesViewProps) {
     setLoading(false)
   }
 
-  const handleDelete = async (saveId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este save?')) {
-      return
-    }
+  const handleDelete = (save: SaveInfo) => {
+    setSaveToDelete(save)
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!saveToDelete) return
 
     setLoading(true)
-    const result = await deleteSave(saveId)
+    const result = await deleteSave(saveToDelete.id)
     
     if (result.success) {
       setMessage({ type: 'success', text: 'Save excluído!' })
@@ -74,6 +80,8 @@ export function SavesView({ saves, managerId }: SavesViewProps) {
     }
     
     setLoading(false)
+    setShowDeleteConfirm(false)
+    setSaveToDelete(null)
   }
 
   return (
@@ -149,7 +157,7 @@ export function SavesView({ saves, managerId }: SavesViewProps) {
                     CARREGAR
                   </button>
                   <button
-                    onClick={() => handleDelete(save.id)}
+                    onClick={() => handleDelete(save)}
                     disabled={loading}
                     className="btn-danger text-sm"
                   >
@@ -172,6 +180,20 @@ export function SavesView({ saves, managerId }: SavesViewProps) {
           <li>• Os saves são salvos em /saves e no banco de dados</li>
         </ul>
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="EXCLUIR SAVE"
+        message={`Tem certeza que deseja excluir o save "${saveToDelete?.name}"? Esta ação não pode ser desfeita.`}
+        confirmText="EXCLUIR"
+        cancelText="CANCELAR"
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowDeleteConfirm(false)
+          setSaveToDelete(null)
+        }}
+        danger={true}
+      />
     </div>
   )
 }

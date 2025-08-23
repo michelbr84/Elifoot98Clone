@@ -12,13 +12,6 @@
 - [x] i18n estrutura (PT-BR default)
 - [x] Testes unitários e E2E smoke
 - [x] Documentação (Architecture, Game Rules, Save Format, Roadmap)
-
-### Bugs Corrigidos
-- [x] Corrigir erro "__webpack_require__.n is not a function" no GameLayout
-- [x] Atualizar Next.js para versão mais recente
-- [x] Verificar compatibilidade de dependências
-
-### Funcionalidades Implementadas
 - [x] View de Táticas funcional com formações e sliders
 - [x] View de Fixtures/Jogos funcional com calendário
 - [x] Sistema financeiro básico (bilheteria, transações)
@@ -27,60 +20,51 @@
 - [x] Log de eventos/notícias automático
 - [x] Sistema de lesões e suspensões aplicado
 - [x] Atalhos de teclado implementados
-- [x] Loading spinner e melhorias de UX
+- [x] Loading spinner
+- [x] Sistema de treinos UI
+- [x] Validação de escalação
 
-### Funcionalidades Completas (Marco A - Final)
-- [x] Sistema de treinos básico com tipos diferentes
-- [x] Validação de escalação (11 jogadores, posições corretas)
+## 🚧 PENDENTE - PARA COMPLETAR 100%
 
-## 🎉 Marco A Completo!
+### Funcionalidades Faltando (CRÍTICO)
+- [ ] View de Transferências funcional (ainda está "Em construção")
+- [ ] Server action para salvar táticas (TacticsView tem TODO)
+- [ ] Server action para aplicar treinos (TrainingView tem TODO)
+- [ ] Sistema de progressão do tempo automático
+- [ ] Final de temporada (promoção/rebaixamento)
+- [ ] Tela de configurações/settings
+- [ ] Tela inicial de seleção de idioma
+- [ ] Aplicar traduções i18n (arquivos existem mas não são usados)
 
-Todas as funcionalidades do MVP foram implementadas:
-- ✅ Jogo totalmente funcional
-- ✅ Todas as views implementadas
-- ✅ Sistema de partidas com engine determinístico
-- ✅ Finanças e notícias automáticas
-- ✅ Saves funcionais (JSON e DB)
-- ✅ Interface retro com atalhos de teclado
-- ✅ Sistema de lesões e suspensões
-- ✅ Validação de escalações
+### Bugs e Melhorias Necessárias
+- [ ] Tática salva não é usada nas partidas (sempre usa 4-4-2)
+- [ ] Treinos não afetam realmente os jogadores
+- [ ] Sistema financeiro não deduz salários automaticamente
+- [ ] Não há limite de endividamento implementado
+- [ ] Jogadores não envelhecem com o tempo
+- [ ] Contratos não expiram
+- [ ] Não há geração de novos jogadores jovens
+- [ ] Patrocínio não é creditado mensalmente
 
-## 🚧 Pendente (Marcos B e C)
-
-### Melhorias de UX
-- [ ] Loading states durante simulação
-- [ ] Feedback visual para ações do usuário
+### UX Crítica Faltando
+- [ ] Confirmação antes de ações importantes (novo jogo, deletar save)
 - [ ] Mensagens de erro mais claras
-- [ ] Confirmação antes de ações importantes
-- [ ] Atalhos de teclado implementados
-- [ ] Tooltips informativos
+- [ ] Feedback quando ação é executada com sucesso
+- [ ] Indicador de dia/mês/ano mais visível
+- [ ] Tutorial ou tela de ajuda inicial
 
-### Testes Adicionais
-- [ ] Testes de integração para server actions
-- [ ] Testes E2E para salvar/carregar jogo
-- [ ] Testes E2E para simular temporada completa
-- [ ] Testes de performance
-- [ ] Testes de acessibilidade
+### Testes Mínimos Necessários
+- [ ] Teste E2E de jogo completo funcionando
+- [ ] Teste de saves funcionando corretamente
+- [ ] Verificar se testes existentes passam
 
-### Performance
-- [ ] Otimizar queries do Prisma
-- [ ] Implementar cache para dados estáticos
-- [ ] Lazy loading de componentes pesados
-- [ ] Otimizar bundle size
+## 📋 PLANO DE AÇÃO
 
-### Marco B - Profundidade
-- [ ] Mercado de transferências
-- [ ] Sistema financeiro completo
-- [ ] Treinos e desenvolvimento de jogadores
-- [ ] Copa nacional
-- [ ] Multi-manager hot-seat
-- [ ] Comentários multi-idioma
-- [ ] Sistema de moral e forma
-
-### Marco C - Polimento
-- [ ] Suporte PostgreSQL
-- [ ] Docker compose
-- [ ] Export/Import de saves
-- [ ] Relatório detalhado de partidas
-- [ ] Dark mode
-- [ ] PWA support
+1. Implementar View de Transferências
+2. Conectar server actions de táticas e treinos
+3. Sistema de progressão temporal automático
+4. Final de temporada com promoções
+5. Aplicar sistema i18n
+6. Corrigir bugs críticos
+7. Melhorias de UX essenciais
+8. Executar e corrigir testes

@@ -44,6 +44,7 @@ export function GameLayout({ children }: GameLayoutProps) {
     { id: 'finance', label: 'FINANÇAS', icon: '💵' },
     { id: 'news', label: 'NOTÍCIAS', icon: '📰' },
     { id: 'saves', label: 'SALVAR/CARREGAR', icon: '💾' },
+    { id: 'settings', label: 'CONFIGURAÇÕES', icon: '⚙️' },
   ] as const
 
   return (
@@ -55,13 +56,13 @@ export function GameLayout({ children }: GameLayoutProps) {
             {currentClub?.name || 'FOOTMANAGER 98'}
           </span>
           {currentClub && (
-            <span className="font-mono text-sm text-retro-green">
+            <span className={`font-mono text-sm font-bold ${currentClub.budget >= 0 ? 'text-retro-green' : 'text-retro-red'}`}>
               §{currentClub.budget.toLocaleString('pt-BR')}
             </span>
           )}
         </div>
-        <div className="font-mono text-sm">
-          {dayjs(currentDate).format('DD/MM/YYYY')}
+        <div className="bg-white text-black px-3 py-1 rounded font-mono text-sm font-bold">
+          📅 {dayjs(currentDate).format('DD [de] MMMM [de] YYYY')}
         </div>
       </div>
 
