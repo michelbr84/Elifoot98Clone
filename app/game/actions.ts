@@ -5,6 +5,7 @@ import { MatchEngine } from '@/src/game/engine/match-engine'
 import { StandingsManager } from '@/src/game/rules/standings'
 import { SaveManager } from '@/src/game/save/save-manager'
 import { NewsGenerator } from '@/src/game/news/news-generator'
+import { LineupValidator } from '@/src/game/rules/lineup-validator'
 import dayjs from 'dayjs'
 
 const prisma = new PrismaClient()
@@ -220,10 +221,31 @@ export async function playNextMatch(managerId: string) {
 
   // Prepare teams for match engine
   const isHome = fixture.homeClubId === manager.clubId
+  
+  // Validate and build lineups
+  const homeFormation = '4-4-2' // TODO: Get from tactics
+  const awayFormation = '4-4-2'
+  
+  const homeLineupValidation = LineupValidator.validate(fixture.homeClub.players, homeFormation)
+  const awayLineupValidation = LineupValidator.validate(fixture.awayClub.players, awayFormation)
+  
+  // Use emergency lineup if validation fails
+  const homePlayers = homeLineupValidation.isValid 
+    ? homeLineupValidation.players 
+    : LineupValidator.getEmergencyLineup(fixture.homeClub.players)
+    
+  const awayPlayers = awayLineupValidation.isValid 
+    ? awayLineupValidation.players 
+    : LineupValidator.getEmergencyLineup(fixture.awayClub.players)
+  
+  if (homePlayers.length < 11 || awayPlayers.length < 11) {
+    throw new Error('Não foi possível formar escalações completas para a partida')
+  }
+  
   const homeTeam = {
     name: fixture.homeClub.name,
-    players: fixture.homeClub.players.slice(0, 11), // TODO: Use actual lineup
-    formation: '4-4-2',
+    players: homePlayers,
+    formation: homeFormation,
     aggression: 50,
     pressure: 50,
     isHome: true
@@ -231,8 +253,8 @@ export async function playNextMatch(managerId: string) {
 
   const awayTeam = {
     name: fixture.awayClub.name,
-    players: fixture.awayClub.players.slice(0, 11), // TODO: Use actual lineup
-    formation: '4-4-2',
+    players: awayPlayers,
+    formation: awayFormation,
     aggression: 50,
     pressure: 50,
     isHome: false

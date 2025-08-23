@@ -2,6 +2,7 @@
 
 import { useGameStore } from '@/src/state/useGameStore'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useGlobalShortcuts } from '@/src/hooks/useKeyboardShortcuts'
 import dayjs from 'dayjs'
 import ptBr from 'dayjs/locale/pt-br'
 
@@ -23,6 +24,9 @@ export function GameLayout({ children }: GameLayoutProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const managerId = searchParams.get('managerId')
+  
+  // Enable keyboard shortcuts
+  useGlobalShortcuts()
 
   const handleViewChange = (view: string) => {
     setSelectedView(view as any)

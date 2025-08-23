@@ -7,6 +7,7 @@ import { TacticsView } from '@/src/ui/components/views/TacticsView'
 import { FixturesView } from '@/src/ui/components/views/FixturesView'
 import { FinanceView } from '@/src/ui/components/views/FinanceView'
 import { NewsView } from '@/src/ui/components/views/NewsView'
+import { TrainingView } from '@/src/ui/components/views/TrainingView'
 import { SavesView } from '@/src/ui/components/views/SavesView'
 import { getGameData, listSaves, getFinanceData, getNews } from './actions'
 
@@ -66,10 +67,7 @@ export default async function GamePage({
       )}
       
       {view === 'training' && (
-        <div className="card-retro p-8 text-center">
-          <h1 className="text-2xl mb-4">TREINOS</h1>
-          <p>Em construção...</p>
-        </div>
+        <TrainingView players={gameData.players} />
       )}
       
       {view === 'finance' && financeData && (

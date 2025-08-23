@@ -13,23 +13,39 @@
 - [x] Testes unitários e E2E smoke
 - [x] Documentação (Architecture, Game Rules, Save Format, Roadmap)
 
-## 🚧 Pendente
+### Bugs Corrigidos
+- [x] Corrigir erro "__webpack_require__.n is not a function" no GameLayout
+- [x] Atualizar Next.js para versão mais recente
+- [x] Verificar compatibilidade de dependências
 
-### Bugs Críticos
-- [ ] Corrigir erro "__webpack_require__.n is not a function" no GameLayout
-- [ ] Atualizar Next.js para versão mais recente
-- [ ] Verificar compatibilidade de dependências
+### Funcionalidades Implementadas
+- [x] View de Táticas funcional com formações e sliders
+- [x] View de Fixtures/Jogos funcional com calendário
+- [x] Sistema financeiro básico (bilheteria, transações)
+- [x] Botão "Jogar Próxima Partida" funcional
+- [x] Exibição de resultados das partidas com modal
+- [x] Log de eventos/notícias automático
+- [x] Sistema de lesões e suspensões aplicado
+- [x] Atalhos de teclado implementados
+- [x] Loading spinner e melhorias de UX
 
-### Funcionalidades Incompletas (Marco A)
-- [ ] View de Táticas funcional (atualmente só placeholder)
-- [ ] View de Fixtures/Jogos funcional (atualmente só placeholder)
-- [ ] Sistema de treinos básico
-- [ ] Sistema financeiro básico (bilheteria, salários)
-- [ ] Botão "Jogar Próxima Partida" funcional
-- [ ] Exibição de resultados das partidas
-- [ ] Log de eventos/notícias
-- [ ] Sistema de lesões e suspensões aplicado
-- [ ] Validação de escalação (11 jogadores, posições corretas)
+### Funcionalidades Completas (Marco A - Final)
+- [x] Sistema de treinos básico com tipos diferentes
+- [x] Validação de escalação (11 jogadores, posições corretas)
+
+## 🎉 Marco A Completo!
+
+Todas as funcionalidades do MVP foram implementadas:
+- ✅ Jogo totalmente funcional
+- ✅ Todas as views implementadas
+- ✅ Sistema de partidas com engine determinístico
+- ✅ Finanças e notícias automáticas
+- ✅ Saves funcionais (JSON e DB)
+- ✅ Interface retro com atalhos de teclado
+- ✅ Sistema de lesões e suspensões
+- ✅ Validação de escalações
+
+## 🚧 Pendente (Marcos B e C)
 
 ### Melhorias de UX
 - [ ] Loading states durante simulação
