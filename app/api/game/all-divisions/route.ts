@@ -19,6 +19,9 @@ export async function GET(request: NextRequest) {
       },
       include: {
         standings: {
+          where: {
+            seasonId: activeSeason.id
+          },
           include: {
             club: {
               select: {

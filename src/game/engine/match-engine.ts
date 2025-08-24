@@ -235,12 +235,12 @@ export class MatchEngine {
         awayRatings.defense
       )
 
-      if (attackSuccess > 0.5) {
-        // Shot on goal
+      if (attackSuccess > 0.65) {
+        // Shot on goal - increased threshold
         currentResult.statistics.homeShots++
         
-        if (this.rng.chance(attackSuccess - 0.3)) {
-          // Goal!
+        if (this.rng.chance((attackSuccess - 0.5) * 0.4)) {
+          // Goal! - much harder to score
           currentResult.statistics.homeShotsOnTarget++
           const scorer = this.selectScorer(homeTeam.players, 'attack')
           
@@ -258,8 +258,8 @@ export class MatchEngine {
           // Shot on target but saved
           currentResult.statistics.homeShotsOnTarget++
         }
-      } else if (attackSuccess > 0.4 && this.rng.chance(0.2)) {
-        // Corner
+      } else if (attackSuccess > 0.5 && this.rng.chance(0.15)) {
+        // Corner - adjusted threshold
         currentResult.statistics.homeCorners++
       }
     } else {
@@ -271,10 +271,10 @@ export class MatchEngine {
         homeRatings.defense
       )
 
-      if (attackSuccess > 0.5) {
+      if (attackSuccess > 0.65) {
         currentResult.statistics.awayShots++
         
-        if (this.rng.chance(attackSuccess - 0.3)) {
+        if (this.rng.chance((attackSuccess - 0.5) * 0.4)) {
           currentResult.statistics.awayShotsOnTarget++
           const scorer = this.selectScorer(awayTeam.players, 'attack')
           
@@ -290,7 +290,7 @@ export class MatchEngine {
         } else if (this.rng.chance(0.3)) {
           currentResult.statistics.awayShotsOnTarget++
         }
-      } else if (attackSuccess > 0.4 && this.rng.chance(0.2)) {
+      } else if (attackSuccess > 0.5 && this.rng.chance(0.15)) {
         currentResult.statistics.awayCorners++
       }
     }
@@ -394,10 +394,10 @@ export class MatchEngine {
    */
   private calculateAttackSuccess(attackRating: number, defenseRating: number): number {
     const ratio = attackRating / (attackRating + defenseRating)
-    // Add some randomness and boost attack slightly
-    const randomFactor = this.rng.randomFloat(0.9, 1.3)
-    const boostedRatio = ratio * 1.2 // Small boost to favor attacking
-    return Math.min(0.95, Math.max(0.15, boostedRatio * randomFactor))
+    // Reduce randomness and remove attack boost to balance gameplay
+    const randomFactor = this.rng.randomFloat(0.95, 1.05)
+    // No boost to make defense more effective
+    return Math.min(0.85, Math.max(0.15, ratio * randomFactor))
   }
 
   /**
