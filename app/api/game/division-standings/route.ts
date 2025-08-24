@@ -1,33 +1,25 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/src/lib/prisma'
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const level = parseInt(searchParams.get('level') || '1')
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const level = searchParams.get('level')
 
-    const season = await prisma.season.findFirst({
-      where: { isActive: true },
-      include: {
-        divisions: {
-          where: { level },
-          include: {
-            clubs: true
-          }
-        }
-      }
+  if (!level) {
+    return NextResponse.json({ error: 'Division level is required' }, { status: 400 })
+  }
+
+  try {
+    const division = await prisma.division.findFirst({
+      where: { level: parseInt(level) }
     })
 
-    if (!season || season.divisions.length === 0) {
+    if (!division) {
       return NextResponse.json({ error: 'Division not found' }, { status: 404 })
     }
 
-    const division = season.divisions[0]
-
-    // Get standings for this division
     const standings = await prisma.standing.findMany({
       where: {
-        seasonId: season.id,
         club: {
           divisionId: division.id
         }
@@ -47,15 +39,20 @@ export async function GET(request: Request) {
       ]
     })
 
-    // Add position to standings
-    const standingsWithPosition = standings.map((standing, index) => ({
+    // Update positions based on sorting
+    const sortedStandings = standings.map((standing, index) => ({
       ...standing,
       position: index + 1
     }))
 
-    return NextResponse.json({ standings: standingsWithPosition })
+    return NextResponse.json({ 
+      success: true,
+      standings: sortedStandings 
+    })
   } catch (error) {
-    console.error('Error loading division standings:', error)
-    return NextResponse.json({ error: 'Failed to load standings' }, { status: 500 })
+    console.error('Error fetching division standings:', error)
+    return NextResponse.json({ 
+      error: 'Failed to fetch division standings' 
+    }, { status: 500 })
   }
 }

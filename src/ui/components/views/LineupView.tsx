@@ -9,14 +9,21 @@ interface LineupViewProps {
   players: Player[]
 }
 
-// Position limits for lineup validation
-const POSITION_LIMITS = { GK: 1, DF: 4, MF: 4, FW: 2 }
+// Get position limits based on formation
+const getFormationLimits = (formation: string): Record<string, number> => {
+  const [df, mf, fw] = formation.split('-').map(Number)
+  return { GK: 1, DF: df, MF: mf, FW: fw }
+}
 
 export function LineupView({ players }: LineupViewProps) {
-  const { currentManager, currentLineup, setCurrentLineup } = useGameStore()
+  const { currentManager, currentLineup, setCurrentLineup, currentTactic } = useGameStore()
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  // Get current formation from tactics or default to 4-4-2
+  const currentFormation = currentTactic?.formation || '4-4-2'
+  const positionLimits = getFormationLimits(currentFormation)
 
   // Get available players (not injured or suspended)
   const availablePlayers = players.filter(p => !p.isInjured && p.banMatches === 0)
@@ -33,15 +40,15 @@ export function LineupView({ players }: LineupViewProps) {
   useEffect(() => {
     const newSelection: string[] = []
 
-    // Select best 11 players (1 GK, 4 DF, 4 MF, 2 FW)
-    const bestGK = playersByPosition.GK.slice(0, 1).map(p => p.id)
-    const bestDF = playersByPosition.DF.slice(0, 4).map(p => p.id)
-    const bestMF = playersByPosition.MF.slice(0, 4).map(p => p.id)
-    const bestFW = playersByPosition.FW.slice(0, 2).map(p => p.id)
+    // Select best players based on formation
+    const bestGK = playersByPosition.GK.slice(0, positionLimits.GK).map(p => p.id)
+    const bestDF = playersByPosition.DF.slice(0, positionLimits.DF).map(p => p.id)
+    const bestMF = playersByPosition.MF.slice(0, positionLimits.MF).map(p => p.id)
+    const bestFW = playersByPosition.FW.slice(0, positionLimits.FW).map(p => p.id)
 
     newSelection.push(...bestGK, ...bestDF, ...bestMF, ...bestFW)
     setSelectedPlayers(newSelection)
-  }, [players])
+  }, [players, currentFormation])
 
   const togglePlayer = (playerId: string) => {
     if (selectedPlayers.includes(playerId)) {
@@ -60,7 +67,7 @@ export function LineupView({ players }: LineupViewProps) {
   }
 
   const getPositionLimits = (position: string) => {
-    return POSITION_LIMITS[position as keyof typeof POSITION_LIMITS] || 0
+    return positionLimits[position] || 0
   }
 
     const handleSave = async () => {
@@ -69,7 +76,7 @@ export function LineupView({ players }: LineupViewProps) {
     setSaving(true)
     try {
       const savedLineup = await saveLineup(currentManager.id, {
-        formation: '4-4-2', // Default formation, tactics will override this
+        formation: currentFormation,
         playerIds: selectedPlayers
       })
       if (savedLineup.success && savedLineup.lineup) {
@@ -92,6 +99,14 @@ export function LineupView({ players }: LineupViewProps) {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-mono">ESCALAÇÃO</h1>
+
+      {/* Current Formation */}
+      <div className="card-retro bg-yellow-50">
+        <div className="text-center font-mono">
+          <div className="text-sm mb-1">FORMAÇÃO ATUAL (definida em TÁTICAS):</div>
+          <div className="text-2xl font-bold">{currentFormation}</div>
+        </div>
+      </div>
 
       {/* Selection Status */}
       <div className="card-retro">
@@ -198,7 +213,7 @@ export function LineupView({ players }: LineupViewProps) {
           <li>• Jogadores lesionados 🏥 e suspensos 🚫 não podem ser selecionados</li>
           <li>• A escalação é aplicada automaticamente no próximo jogo</li>
           <li>• Jogadores com baixa forma física podem ter desempenho reduzido</li>
-          <li>• A formação deve corresponder à tática selecionada</li>
+          <li>• Para mudar a formação, vá até a aba TÁTICAS</li>
         </ul>
       </div>
     </div>
