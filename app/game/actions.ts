@@ -318,11 +318,7 @@ export async function advanceDay(managerId: string, currentDate: Date) {
   // Update injured players
   await prisma.player.updateMany({
     where: {
-      club: {
-        managedBy: {
-          some: { id: managerId }
-        }
-      },
+      clubId: manager.clubId,
       isInjured: true,
       injuryDays: { gt: 0 }
     },
