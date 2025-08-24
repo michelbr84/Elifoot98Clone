@@ -16,10 +16,10 @@ interface GameLayoutProps {
 }
 
 export function GameLayout({ children }: GameLayoutProps) {
-  const { 
-    currentClub, 
-    currentDate, 
-    selectedView, 
+  const {
+    currentClub,
+    currentDate,
+    selectedView,
     setSelectedView,
     isSimulating,
     isManagerFired,
@@ -27,7 +27,9 @@ export function GameLayout({ children }: GameLayoutProps) {
     setCurrentManager,
     setCurrentClub,
     setCurrentSeason,
-    setCurrentDate
+    setCurrentDate,
+    setCurrentTactic,
+    setCurrentLineup
   } = useGameStore()
   
   const router = useRouter()
@@ -46,11 +48,25 @@ export function GameLayout({ children }: GameLayoutProps) {
         const response = await fetch(`/api/game/init?managerId=${managerId}`)
         if (response.ok) {
           const gameData = await response.json()
-          
+
           setCurrentManager(gameData.manager)
           setCurrentClub(gameData.club)
           setCurrentSeason(gameData.season)
           setCurrentDate(new Date(gameData.currentDate || new Date()))
+
+          // Set active tactic and lineup from manager data
+          if (gameData.manager.tactics && gameData.manager.tactics.length > 0) {
+            const activeTactic = gameData.manager.tactics.find(t => t.isActive)
+            if (activeTactic) {
+              setCurrentTactic(activeTactic)
+            }
+          }
+          if (gameData.manager.lineups && gameData.manager.lineups.length > 0) {
+            const activeLineup = gameData.manager.lineups.find(l => l.isActive)
+            if (activeLineup) {
+              setCurrentLineup(activeLineup)
+            }
+          }
         }
       } catch (error) {
         console.error('Error initializing game state:', error)
@@ -58,7 +74,7 @@ export function GameLayout({ children }: GameLayoutProps) {
     }
 
     initializeGameState()
-  }, [managerId, setCurrentManager, setCurrentClub, setCurrentSeason, setCurrentDate])
+  }, [managerId, setCurrentManager, setCurrentClub, setCurrentSeason, setCurrentDate, setCurrentTactic, setCurrentLineup])
 
   const handleViewChange = (view: string) => {
     setSelectedView(view as any)
@@ -98,8 +114,9 @@ export function GameLayout({ children }: GameLayoutProps) {
   const menuItems = [
     { id: 'home', label: 'INÍCIO', icon: '🏠' },
     { id: 'squad', label: 'ELENCO', icon: '👥' },
+    { id: 'lineup', label: 'ESCALAÇÃO', icon: '⚽' },
     { id: 'tactics', label: 'TÁTICA', icon: '📋' },
-    { id: 'fixtures', label: 'JOGOS', icon: '⚽' },
+    { id: 'fixtures', label: 'JOGOS', icon: '📅' },
     { id: 'table', label: 'TABELA', icon: '📊' },
     { id: 'all-divisions', label: 'TODAS AS DIVISÕES', icon: '🏆' },
     { id: 'transfers', label: 'TRANSFERÊNCIAS', icon: '💰' },

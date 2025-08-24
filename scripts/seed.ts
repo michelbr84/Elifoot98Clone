@@ -125,7 +125,6 @@ async function main() {
   // Clear existing data
   await prisma.$transaction([
     prisma.matchEvent.deleteMany(),
-    prisma.lineupPlayer.deleteMany(),
     prisma.lineup.deleteMany(),
     prisma.match.deleteMany(),
     prisma.fixture.deleteMany(),

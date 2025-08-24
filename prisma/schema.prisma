@@ -10,7 +10,7 @@ datasource db {
 model Division {
   id       String  @id @default(cuid())
   name     String
-  level    Int     // 1 = Serie A, 2 = Serie B, etc
+  level    Int // 1 = Serie A, 2 = Serie B, etc
   season   Season? @relation(fields: [seasonId], references: [id])
   seasonId String?
 
@@ -22,79 +22,78 @@ model Division {
 }
 
 model Club {
-  id         String  @id @default(cuid())
+  id         String   @id @default(cuid())
   name       String
   shortName  String
-  colors     String  // JSON string with primary and secondary colors
+  colors     String // JSON string with primary and secondary colors
   founded    Int
   stadium    String
   capacity   Int
-  budget     Int     @default(1000000)
+  budget     Int      @default(1000000)
   divisionId String
   division   Division @relation(fields: [divisionId], references: [id])
 
-  players         Player[]
-  managedBy       Manager[]
-  homeFixtures    Fixture[]  @relation("HomeClub")
-  awayFixtures    Fixture[]  @relation("AwayClub")
-  standings       Standing[]
-  transfersIn     Transfer[] @relation("BuyingClub")
-  transfersOut    Transfer[] @relation("SellingClub")
-  finances        Finance[]
-  news            News[]
-  
+  players      Player[]
+  managedBy    Manager[]
+  homeFixtures Fixture[]  @relation("HomeClub")
+  awayFixtures Fixture[]  @relation("AwayClub")
+  standings    Standing[]
+  transfersIn  Transfer[] @relation("BuyingClub")
+  transfersOut Transfer[] @relation("SellingClub")
+  finances     Finance[]
+  news         News[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Manager {
-  id          String  @id @default(cuid())
-  name        String
-  isHuman     Boolean @default(true)
-  clubId      String?
-  club        Club?   @relation(fields: [clubId], references: [id])
-  
-  saves       SaveSlot[]
-  lineups     Lineup[]
-  tactics     Tactic[]
-  
+  id      String  @id @default(cuid())
+  name    String
+  isHuman Boolean @default(true)
+  clubId  String?
+  club    Club?   @relation(fields: [clubId], references: [id])
+
+  saves   SaveSlot[]
+  lineups Lineup[]
+  tactics Tactic[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Player {
-  id              String   @id @default(cuid())
-  name            String
-  age             Int
-  nationality     String
-  position        String   // GK, DF, MF, FW
-  overall         Int      // 1-100
-  fitness         Int      @default(100) // 0-100
-  form            Int      @default(50)  // 0-100
-  morale          Int      @default(50)  // 0-100
-  value           Int      // market value
-  wage            Int      // weekly wage
-  contractEndsAt  DateTime
-  yellowCards     Int      @default(0)
-  redCards        Int      @default(0)
-  goalsSeason     Int      @default(0)
-  assistsSeason   Int      @default(0)
-  isInjured       Boolean  @default(false)
-  injuryDays      Int      @default(0)
-  banMatches      Int      @default(0)
-  
-  clubId          String?
-  club            Club?    @relation(fields: [clubId], references: [id])
-  
-  lineups         LineupPlayer[]
-  matchEvents     MatchEvent[]
-  transfers       Transfer[]
-  contracts       Contract[]
-  injuries        Injury[]
-  trainings       Training[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  age            Int
+  nationality    String
+  position       String // GK, DF, MF, FW
+  overall        Int // 1-100
+  fitness        Int      @default(100) // 0-100
+  form           Int      @default(50) // 0-100
+  morale         Int      @default(50) // 0-100
+  value          Int // market value
+  wage           Int // weekly wage
+  contractEndsAt DateTime
+  yellowCards    Int      @default(0)
+  redCards       Int      @default(0)
+  goalsSeason    Int      @default(0)
+  assistsSeason  Int      @default(0)
+  isInjured      Boolean  @default(false)
+  injuryDays     Int      @default(0)
+  banMatches     Int      @default(0)
+
+  // Relations
+  clubId    String?
+  club      Club?        @relation(fields: [clubId], references: [id])
+  transfers Transfer[]
+  events    MatchEvent[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Contract  Contract[]
+  Injury    Injury[]
+  Training  Training[]
 }
 
 model Season {
@@ -103,138 +102,120 @@ model Season {
   startDate DateTime
   endDate   DateTime
   isActive  Boolean  @default(false)
-  
+
   divisions Division[]
   rounds    Round[]
   standings Standing[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Round {
-  id       String    @id @default(cuid())
+  id       String @id @default(cuid())
   number   Int
   seasonId String
-  season   Season    @relation(fields: [seasonId], references: [id])
-  
+  season   Season @relation(fields: [seasonId], references: [id])
+
   fixtures Fixture[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Fixture {
-  id           String    @id @default(cuid())
-  roundId      String
-  round        Round     @relation(fields: [roundId], references: [id])
-  divisionId   String
-  division     Division  @relation(fields: [divisionId], references: [id])
-  homeClubId   String
-  homeClub     Club      @relation("HomeClub", fields: [homeClubId], references: [id])
-  awayClubId   String
-  awayClub     Club      @relation("AwayClub", fields: [awayClubId], references: [id])
-  scheduledAt  DateTime
-  isPlayed     Boolean   @default(false)
-  
-  match        Match?
-  
+  id          String   @id @default(cuid())
+  roundId     String
+  round       Round    @relation(fields: [roundId], references: [id])
+  divisionId  String
+  division    Division @relation(fields: [divisionId], references: [id])
+  homeClubId  String
+  homeClub    Club     @relation("HomeClub", fields: [homeClubId], references: [id])
+  awayClubId  String
+  awayClub    Club     @relation("AwayClub", fields: [awayClubId], references: [id])
+  scheduledAt DateTime
+  isPlayed    Boolean  @default(false)
+
+  match Match?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Match {
-  id            String   @id @default(cuid())
-  fixtureId     String   @unique
-  fixture       Fixture  @relation(fields: [fixtureId], references: [id])
-  homeScore     Int      @default(0)
-  awayScore     Int      @default(0)
-  attendance    Int
-  revenue       Int
-  weather       String   // sunny, rainy, cloudy
-  referee       String
-  matchMinutes  Int      @default(90)
-  seed          String   // for deterministic simulation
-  
-  lineups       Lineup[]
-  events        MatchEvent[]
-  
+  id           String  @id @default(cuid())
+  fixtureId    String  @unique
+  fixture      Fixture @relation(fields: [fixtureId], references: [id])
+  homeScore    Int     @default(0)
+  awayScore    Int     @default(0)
+  attendance   Int
+  revenue      Int
+  weather      String // sunny, rainy, cloudy
+  referee      String
+  matchMinutes Int     @default(90)
+  seed         String // for deterministic simulation
+
+  events MatchEvent[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Lineup {
-  id        String   @id @default(cuid())
-  matchId   String
-  match     Match    @relation(fields: [matchId], references: [id])
+  id        String  @id @default(cuid())
   managerId String
-  manager   Manager  @relation(fields: [managerId], references: [id])
-  formation String   // 4-4-2, 4-3-3, etc
-  isHome    Boolean
-  
-  players   LineupPlayer[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+  manager   Manager @relation(fields: [managerId], references: [id])
+  formation String // 4-4-2, 4-3-3, 3-5-2, 5-3-2
+  playerIds String // JSON array of player IDs
+  isActive  Boolean @default(false)
 
-model LineupPlayer {
-  id         String  @id @default(cuid())
-  lineupId   String
-  lineup     Lineup  @relation(fields: [lineupId], references: [id])
-  playerId   String
-  player     Player  @relation(fields: [playerId], references: [id])
-  position   String  // actual position in this match
-  isStarter  Boolean @default(true)
-  shirtNumber Int
-  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model MatchEvent {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   matchId  String
-  match    Match  @relation(fields: [matchId], references: [id])
+  match    Match   @relation(fields: [matchId], references: [id])
   minute   Int
   type     String // goal, yellowCard, redCard, substitution, injury
   playerId String?
   player   Player? @relation(fields: [playerId], references: [id])
   detail   String? // JSON with event details
-  
+
   createdAt DateTime @default(now())
 }
 
 model Tactic {
-  id            String  @id @default(cuid())
-  managerId     String
-  manager       Manager @relation(fields: [managerId], references: [id])
-  name          String
-  formation     String  // 4-4-2, 4-3-3, 3-5-2, 5-3-2
-  aggression    Int     @default(50) // 0-100
-  pressure      Int     @default(50) // 0-100
-  passingStyle  String  @default("mixed") // short, long, mixed
-  isActive      Boolean @default(false)
-  
+  id           String  @id @default(cuid())
+  managerId    String
+  manager      Manager @relation(fields: [managerId], references: [id])
+  name         String
+  formation    String // 4-4-2, 4-3-3, 3-5-2, 5-3-2
+  aggression   Int     @default(50) // 0-100
+  pressure     Int     @default(50) // 0-100
+  passingStyle String  @default("mixed") // short, long, mixed
+  isActive     Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Standing {
-  id         String   @id @default(cuid())
-  seasonId   String
-  season     Season   @relation(fields: [seasonId], references: [id])
-  clubId     String
-  club       Club     @relation(fields: [clubId], references: [id])
-  played     Int      @default(0)
-  won        Int      @default(0)
-  drawn      Int      @default(0)
-  lost       Int      @default(0)
-  goalsFor   Int      @default(0)
+  id           String @id @default(cuid())
+  seasonId     String
+  season       Season @relation(fields: [seasonId], references: [id])
+  clubId       String
+  club         Club   @relation(fields: [clubId], references: [id])
+  played       Int    @default(0)
+  won          Int    @default(0)
+  drawn        Int    @default(0)
+  lost         Int    @default(0)
+  goalsFor     Int    @default(0)
   goalsAgainst Int    @default(0)
-  points     Int      @default(0)
-  position   Int      @default(0)
-  
+  points       Int    @default(0)
+  position     Int    @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -242,19 +223,19 @@ model Standing {
 }
 
 model Transfer {
-  id           String   @id @default(cuid())
-  playerId     String
-  player       Player   @relation(fields: [playerId], references: [id])
-  fromClubId   String?
-  fromClub     Club?    @relation("SellingClub", fields: [fromClubId], references: [id])
-  toClubId     String
-  toClub       Club     @relation("BuyingClub", fields: [toClubId], references: [id])
-  fee          Int
-  wage         Int
+  id            String    @id @default(cuid())
+  playerId      String
+  player        Player    @relation(fields: [playerId], references: [id])
+  fromClubId    String?
+  fromClub      Club?     @relation("SellingClub", fields: [fromClubId], references: [id])
+  toClubId      String
+  toClub        Club      @relation("BuyingClub", fields: [toClubId], references: [id])
+  fee           Int
+  wage          Int
   contractYears Int
-  status       String   @default("pending") // pending, accepted, rejected
-  transferDate DateTime?
-  
+  status        String    @default("pending") // pending, accepted, rejected
+  transferDate  DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -267,7 +248,7 @@ model Contract {
   startDate DateTime
   endDate   DateTime
   wage      Int
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -276,36 +257,36 @@ model Finance {
   id          String   @id @default(cuid())
   clubId      String
   club        Club     @relation(fields: [clubId], references: [id])
-  type        String   // income, expense
-  category    String   // tickets, wages, transfers, sponsor, maintenance
+  type        String // income, expense
+  category    String // tickets, wages, transfers, sponsor, maintenance
   amount      Int
   description String
   date        DateTime
-  
+
   createdAt DateTime @default(now())
 }
 
 model News {
-  id       String   @id @default(cuid())
-  title    String
-  content  String
-  type     String   // transfer, match, injury, general
-  clubId   String?
-  club     Club?    @relation(fields: [clubId], references: [id])
-  date     DateTime
-  
+  id      String   @id @default(cuid())
+  title   String
+  content String
+  type    String // transfer, match, injury, general
+  clubId  String?
+  club    Club?    @relation(fields: [clubId], references: [id])
+  date    DateTime
+
   createdAt DateTime @default(now())
 }
 
 model Injury {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   playerId  String
-  player    Player   @relation(fields: [playerId], references: [id])
-  type      String   // muscle, fracture, sprain
-  severity  Int      // days out
+  player    Player    @relation(fields: [playerId], references: [id])
+  type      String // muscle, fracture, sprain
+  severity  Int // days out
   startDate DateTime
   endDate   DateTime?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -314,12 +295,12 @@ model Training {
   id          String   @id @default(cuid())
   playerId    String
   player      Player   @relation(fields: [playerId], references: [id])
-  type        String   // fitness, form, recovery, intensive
+  type        String // fitness, form, recovery, intensive
   date        DateTime
   fitnessGain Int      @default(0)
   formGain    Int      @default(0)
-  
-  createdAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
 }
 
 model SaveSlot {
@@ -329,8 +310,8 @@ model SaveSlot {
   name       String
   gameDate   DateTime
   seasonYear Int
-  data       String   // JSON compressed save data
-  
+  data       String // JSON compressed save data
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

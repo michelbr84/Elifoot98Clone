@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/src/lib/prisma'
 import { startNewGame } from '../game/actions'
-
-const prisma = new PrismaClient()
 
 async function getClubs() {
   const divisions = await prisma.division.findMany({

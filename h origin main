@@ -1,0 +1,29 @@
+[33mcommit 736fd19b574736059fdf03323d7d203fdd1e6098[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: michelbr84 <michelduek@hotmail.com>
+Date:   Sat Aug 23 17:44:10 2025 -0400
+
+    docs: Update TODO and README with critical issues found by user
+    
+    - Update TODO.md with all critical problems identified
+    - Update README.md with real current status
+    - Add sections for urgent corrections needed
+    - Mark system as 'in development' with critical issues
+    - Document all problems found by user testing
+
+README.md
+TODO.md
+app/api/game/advance-day/route.ts
+app/api/game/all-divisions/route.ts
+app/api/game/assign-new-club/route.ts
+app/api/game/init/route.ts
+app/api/game/play-match/route.ts
+app/api/game/serie-d-clubs/route.ts
+app/game/actions.ts
+app/game/page.tsx
+package-lock.json
+src/game/rules/season-manager.ts
+src/state/useGameStore.ts
+src/ui/components/GameLayout.tsx
+src/ui/components/ManagerFiredDialog.tsx
+src/ui/components/views/AllDivisionsView.tsx
+src/ui/components/views/HomeView.tsx

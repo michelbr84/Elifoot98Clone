@@ -1,7 +1,5 @@
 import Link from 'next/link'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/src/lib/prisma'
 
 async function getClubs() {
   const divisions = await prisma.division.findMany({

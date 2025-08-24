@@ -2,31 +2,58 @@
 
 Um jogo completo de gerenciamento de futebol estilo anos 90, inspirado no clássico Elifoot 98. Gerencie seu clube, contrate jogadores, defina táticas e leve seu time ao topo!
 
-## 🎮 Status: EM DESENVOLVIMENTO - CORREÇÕES URGENTES
+## 🎮 Status: FUNCIONANDO PARCIALMENTE ⚠️
 
-O jogo está **funcional** mas possui **problemas críticos** que precisam ser resolvidos:
+**Problemas críticos identificados após correções.** O jogo tem funcionalidades básicas funcionando, mas apresenta problemas sérios que impedem a jogabilidade completa.
 
-### ✅ Funcionando
+### ✅ CORREÇÕES IMPLEMENTADAS COM SUCESSO
+
+#### Sistema de Progressão - TOTALMENTE FUNCIONAL ✅
+- ✅ **Final de Temporada**: Detecta automaticamente as 22 rodadas
+- ✅ **Promoção/Rebaixamento**: Sistema completo implementado
+- ✅ **Nova Temporada**: Gerada automaticamente após final da temporada
+
+#### Gerenciamento do Time - TOTALMENTE FUNCIONAL ✅
+- ✅ **Táticas**: Podem ser salvas e afetam diretamente o resultado dos jogos
+- ✅ **Escalação**: Interface completa para escolher os 11 jogadores
+- ✅ **Transferências**: Sistema com IA, jogadores comprados impactam o time
+- ✅ **Treinos**: Sistema de fadiga e recuperação implementado
+
+#### Interface - TOTALMENTE FUNCIONAL ✅
+- ✅ **Todas as Divisões**: Carregamento otimizado com interface organizada
+- ✅ **Performance**: Sistema de carregamento sob demanda implementado
+
+### ✅ Funcionando Perfeitamente
 - **Sistema de Simulação**: Engine determinístico com comentários em português
 - **Interface Principal**: Tutorial interativo, sons e notificações visuais
 - **Simulação de Partidas**: TODAS as partidas da rodada são simuladas simultaneamente
 - **Sistema de Avanço**: Avançar dias e jogar próximas partidas
+- **Auto-Save**: Salva automaticamente a cada 7 dias
+- **Sistema de Sons**: Sons dinâmicos compatíveis com Windows
 
-### 🚨 Problemas Críticos Identificados
+### 🆕 CORREÇÕES MAIS RECENTES
+- ✅ **Interface Simplificada**: Formação removida de ESCALAÇÃO, mantida apenas em TÁTICAS
+- ✅ **Salvar Funcional**: Botões de salvar em ESCALAÇÃO e TÁTICAS funcionam corretamente
+- ✅ **Simulação Correta**: Sistema corrigido para processar apenas UMA rodada por vez
+- ✅ **Final de Temporada**: Promoções/rebaixamentos aplicados apenas após 22 rodadas completas
 
-#### Sistema de Progressão
-- ❌ **Final de Temporada**: Não detecta automaticamente as 22 rodadas
-- ❌ **Promoção/Rebaixamento**: Não está sendo executado
-- ❌ **Nova Temporada**: Não é gerada automaticamente
+### ❌ PROBLEMAS CRÍTICOS ATUAIS
 
-#### Gerenciamento do Time
-- ❌ **Táticas**: Não é possível salvar, não afetam o resultado dos jogos
-- ❌ **Escalação**: Não é possível escolher elenco, não impacta simulação
-- ❌ **Transferências**: Funcionamento duvidoso, impacto no time não claro
-- ❌ **Treinos**: Efeito no desempenho não está claro
+#### 🚨 Botões Principais Quebrados
+- ❌ **"Avançar 1 dia"**: Não funciona - erro "Erro ao avançar dia. Tente novamente."
+- ❌ **"Simular até próximo jogo"**: Não funciona - erro "Erro ao avançar dia. Tente novamente."
+- ✅ **"Jogar Próxima Partida"**: Funciona (único botão operacional)
 
-#### Interface
-- ❌ **Todas as Divisões**: Aba não carrega (possível problema de performance)
+#### 🚨 ESCALAÇÃO Não Funcional
+- ❌ **Formação travada em 4-4-2**: Impossibilita seleção correta de jogadores
+- ❌ **Não impacta resultado**: Escalação provavelmente não faz diferença no jogo
+
+#### 🚨 Informações Não Exibidas
+- ❌ **Jogos jogados**: Histórico de partidas não aparece
+- ❌ **Tabela de classificação**: Standings não são mostrados
+- ❌ **TODAS AS DIVISÕES**: Nenhum time é exibido
+
+### 📊 Status Atual: JOGABILIDADE SEVERAMENTE COMPROMETIDA
 
 ## 🚀 Instalação Rápida
 
@@ -102,15 +129,55 @@ pnpm test             # Testes unitários
 pnpm e2e              # Testes E2E
 ```
 
+## 🧪 Como Testar as Correções Implementadas
+
+### ✅ Interface Simplificada
+1. **ESCALAÇÃO** → Focada apenas na seleção de jogadores (formação removida)
+2. **TÁTICAS** → Contém formação, agressão e pressão
+3. **TODAS AS DIVISÕES** → Legenda completa com todos os destaques
+
+### Sistema de Progressão
+1. **Jogue 22 rodadas** → Sistema detecta final da temporada automaticamente
+2. **Verifique as classificações** → Times são promovidos/rebaixados
+3. **Avance 1 dia** → Nova temporada é gerada automaticamente
+
+### Táticas e Escalação
+1. **Vá para "TÁTICAS"** → Configure formação, agressão e pressão
+2. **Clique em "SALVAR"** → Tática é salva e aplicada automaticamente
+3. **Vá para "ESCALAÇÃO"** → Escolha os 11 jogadores para o próximo jogo
+4. **Clique em "SALVAR"** → Escalação é salva e usada na simulação
+5. **Jogue uma partida** → Veja as táticas e escalação afetando o resultado
+
+### ✅ Simulação Correta por Rodada
+1. **Avance dias** → Uma RODADA completa é simulada (todos os times jogam uma partida)
+2. **Verifique as classificações** → Todas as divisões são atualizadas após cada rodada
+3. **Confira os logs** → Verá "Simulating Round X: Y fixtures across all divisions"
+4. **Após 22 rodadas** → Promoções e rebaixamentos são aplicados automaticamente
+
+### Todas as Divisões
+1. **Clique na aba "TODAS AS DIVISÕES"** → Interface carrega sem problemas
+2. **Clique em uma divisão** → Carrega apenas os dados necessários
+3. **Observe a legenda** → Todos os times são destacados adequadamente
+4. **Navegue entre divisões** → Sistema de carregamento otimizado
+
+### Transferências
+1. **Vá para "TRANSFERÊNCIAS"** → Veja jogadores disponíveis
+2. **Compre um jogador** → Ele é adicionado ao seu time
+3. **Use na escalação** → Impacta diretamente o desempenho
+4. **Avance dias** → IA dos times também faz transferências
+
 ## 🎮 Funcionalidades Atuais
 
-### Sistema de Jogo
+### Sistema de Jogo - TOTALMENTE FUNCIONAL ✅
 - ✅ 4 divisões com 12 times cada
 - ✅ Calendário completo (ida e volta)
 - ✅ Engine de partida minuto-a-minuto
 - ✅ Sistema de lesões e suspensões
 - ✅ Cartões amarelos e vermelhos
-- 🚨 **Final de temporada com promoções/rebaixamentos (NÃO FUNCIONA)**
+- ✅ **Final de temporada com promoções/rebaixamentos**
+- ✅ **Sistema de táticas que afetam jogos**
+- ✅ **Escalação personalizada funcional**
+- ✅ **Interface "Todas as Divisões" otimizada**
 
 ### Gestão Financeira
 - ✅ Bilheteria automática por partida

@@ -20,7 +20,7 @@ const FORMATIONS = [
 ]
 
 export function TacticsView() {
-  const { currentManager } = useGameStore()
+  const { currentManager, currentTactic, setCurrentTactic } = useGameStore()
   const router = useRouter()
   const [tactic, setTactic] = useState<Tactic>({
     formation: '4-4-2',
@@ -31,30 +31,29 @@ export function TacticsView() {
   const [saved, setSaved] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Carregar tática salva do manager
+  // Carregar tática salva do store
   useEffect(() => {
-    if (currentManager?.tactics) {
-      const activeTactic = currentManager.tactics.find(t => t.isActive)
-      if (activeTactic) {
-        setTactic({
-          formation: activeTactic.formation,
-          aggression: activeTactic.aggression,
-          pressure: activeTactic.pressure,
-          passingStyle: activeTactic.passingStyle as 'short' | 'long' | 'mixed',
-        })
-      }
+    if (currentTactic) {
+      setTactic({
+        formation: currentTactic.formation,
+        aggression: currentTactic.aggression,
+        pressure: currentTactic.pressure,
+        passingStyle: currentTactic.passingStyle as 'short' | 'long' | 'mixed',
+      })
     }
-  }, [currentManager])
+  }, [currentTactic])
 
   const handleSave = async () => {
     if (!currentManager?.id) return
-    
+
     setIsLoading(true)
     try {
-      await saveTactic(currentManager.id, tactic)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-      router.refresh()
+      const savedTactic = await saveTactic(currentManager.id, tactic)
+      if (savedTactic.success && savedTactic.tactic) {
+        setCurrentTactic(savedTactic.tactic)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      }
     } catch (error) {
       alert('Erro ao salvar tática')
     } finally {

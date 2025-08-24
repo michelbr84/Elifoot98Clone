@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Manager, Club, Season } from '@prisma/client'
+import { Manager, Club, Season, Tactic, Lineup } from '@prisma/client'
 
 interface GameState {
   // Current game state
@@ -8,11 +8,13 @@ interface GameState {
   currentClub: Club | null
   currentSeason: Season | null
   currentDate: Date
+  currentTactic: Tactic | null
+  currentLineup: Lineup | null
   
   // UI state
   isLoading: boolean
   isSimulating: boolean
-  selectedView: 'home' | 'squad' | 'tactics' | 'fixtures' | 'table' | 'all-divisions' | 'transfers' | 'training' | 'finance' | 'news' | 'saves' | 'settings'
+  selectedView: 'home' | 'squad' | 'lineup' | 'tactics' | 'fixtures' | 'table' | 'all-divisions' | 'transfers' | 'training' | 'finance' | 'news' | 'saves' | 'settings'
   
   // Manager fired state
   isManagerFired: boolean
@@ -22,6 +24,8 @@ interface GameState {
   setCurrentClub: (club: Club | null) => void
   setCurrentSeason: (season: Season | null) => void
   setCurrentDate: (date: Date) => void
+  setCurrentTactic: (tactic: Tactic | null) => void
+  setCurrentLineup: (lineup: Lineup | null) => void
   setLoading: (loading: boolean) => void
   setSimulating: (simulating: boolean) => void
   setSelectedView: (view: GameState['selectedView']) => void
@@ -34,6 +38,8 @@ const initialState = {
   currentClub: null,
   currentSeason: null,
   currentDate: new Date(),
+  currentTactic: null,
+  currentLineup: null,
   isLoading: false,
   isSimulating: false,
   selectedView: 'home' as const,
@@ -49,6 +55,8 @@ export const useGameStore = create<GameState>()(
       setCurrentClub: (club) => set({ currentClub: club }),
       setCurrentSeason: (season) => set({ currentSeason: season }),
       setCurrentDate: (date) => set({ currentDate: date }),
+      setCurrentTactic: (tactic) => set({ currentTactic: tactic }),
+      setCurrentLineup: (lineup) => set({ currentLineup: lineup }),
       setLoading: (loading) => set({ isLoading: loading }),
       setSimulating: (simulating) => set({ isSimulating: simulating }),
       setSelectedView: (view) => set({ selectedView: view }),

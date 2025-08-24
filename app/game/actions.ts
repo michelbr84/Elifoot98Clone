@@ -1,18 +1,18 @@
 'use server'
 
-import { PrismaClient, Player } from '@prisma/client'
+import { Player } from '@prisma/client'
 import { MatchEngine } from '@/src/game/engine/match-engine'
 import { StandingsManager } from '@/src/game/rules/standings'
 import { SaveManager } from '@/src/game/save/save-manager'
 import { NewsGenerator } from '@/src/game/news/news-generator'
 import { LineupValidator } from '@/src/game/rules/lineup-validator'
 import { SeasonManager } from '@/src/game/rules/season-manager'
+import { prisma } from '@/src/lib/prisma'
 import dayjs from 'dayjs'
 import dayOfYear from 'dayjs/plugin/dayOfYear'
 
 dayjs.extend(dayOfYear)
 
-const prisma = new PrismaClient()
 const saveManager = new SaveManager(prisma)
 
 // Helper function to generate player names
@@ -26,6 +26,85 @@ function generatePlayerName(): string {
   return `${first} ${last}`
 }
 
+export async function getManagerTactics(managerId: string) {
+  const tactics = await prisma.tactic.findMany({
+    where: { managerId },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  return tactics
+}
+
+// Helper function to get active tactic
+export async function getActiveTactic(managerId: string) {
+  const tactic = await prisma.tactic.findFirst({
+    where: {
+      managerId,
+      isActive: true
+    }
+  })
+
+  return tactic
+}
+
+// Helper function to get active lineup
+export async function getActiveLineup(managerId: string) {
+  const lineup = await prisma.lineup.findFirst({
+    where: {
+      managerId,
+      isActive: true
+    }
+  })
+
+  return lineup
+}
+
+export async function saveLineup(managerId: string, lineup: {
+  formation: string
+  playerIds: string[]
+}) {
+  // Validate that all players belong to the manager's club
+  const manager = await prisma.manager.findUnique({
+    where: { id: managerId },
+    include: { club: { include: { players: true } } }
+  })
+
+  if (!manager || !manager.club) {
+    throw new Error('Manager or club not found')
+  }
+
+  const clubPlayerIds = manager.club.players.map(p => p.id)
+  const validPlayerIds = lineup.playerIds.filter(id => clubPlayerIds.includes(id))
+
+  if (validPlayerIds.length !== 11) {
+    throw new Error('Invalid lineup: must have exactly 11 players from the club')
+  }
+
+  // Deactivate all current lineups
+  await prisma.lineup.updateMany({
+    where: { managerId },
+    data: { isActive: false }
+  })
+
+  // Create new lineup
+  const savedLineup = await prisma.lineup.create({
+    data: {
+      managerId,
+      formation: lineup.formation,
+      playerIds: JSON.stringify(validPlayerIds),
+      isActive: true
+    }
+  })
+
+  console.log(`Escalação salva para manager ${managerId}:`, {
+    formation: lineup.formation,
+    playerCount: validPlayerIds.length,
+    players: validPlayerIds
+  })
+
+  return { success: true, lineup: savedLineup }
+}
+
 export async function getGameData(managerId: string) {
   const manager = await prisma.manager.findUnique({
     where: { id: managerId },
@@ -35,6 +114,12 @@ export async function getGameData(managerId: string) {
           division: true,
           players: true,
         }
+      },
+      tactics: {
+        where: { isActive: true }
+      },
+      lineups: {
+        where: { isActive: true }
       }
     }
   })
@@ -143,6 +228,74 @@ export async function getGameData(managerId: string) {
   }
 }
 
+async function simulateAITransfers() {
+  // Get all AI-controlled clubs
+  const aiClubs = await prisma.club.findMany({
+    where: {
+      OR: [
+        { managedBy: { none: {} } }, // No manager
+        { managedBy: { every: { isHuman: false } } } // AI manager
+      ]
+    },
+    include: {
+      players: true,
+      division: true
+    }
+  })
+
+  for (const club of aiClubs) {
+    // Skip if club has no budget
+    if (club.budget <= 0) continue
+
+    // Analyze squad needs
+    const playersByPosition = {
+      GK: club.players.filter(p => p.position === 'GK'),
+      DF: club.players.filter(p => p.position === 'DF'),
+      MF: club.players.filter(p => p.position === 'MF'),
+      FW: club.players.filter(p => p.position === 'FW')
+    }
+
+    // Determine positions that need reinforcement
+    const needs = []
+    if (playersByPosition.GK.length < 2) needs.push('GK')
+    if (playersByPosition.DF.length < 4) needs.push('DF')
+    if (playersByPosition.MF.length < 4) needs.push('MF')
+    if (playersByPosition.FW.length < 2) needs.push('FW')
+
+    if (needs.length === 0) continue
+
+    // Find available players in the market
+    const targetPosition = needs[Math.floor(Math.random() * needs.length)]
+    const availablePlayers = await prisma.player.findMany({
+      where: {
+        position: targetPosition,
+        club: {
+          id: { not: club.id }
+        }
+      },
+      orderBy: { overall: 'desc' },
+      take: 10
+    })
+
+    if (availablePlayers.length === 0) continue
+
+    // Try to buy a player within budget
+    for (const player of availablePlayers) {
+      const playerValue = calculatePlayerValue(player)
+      const offerAmount = Math.round(playerValue * (0.8 + Math.random() * 0.4)) // 80-120% of value
+
+      if (offerAmount <= club.budget * 0.5) { // Don't spend more than 50% of budget
+        try {
+          await makeTransferOffer(club.id, player.id, offerAmount)
+          break // Only one transfer per cycle
+        } catch (error) {
+          // Continue to next player
+        }
+      }
+    }
+  }
+}
+
 export async function advanceDay(managerId: string, currentDate: Date) {
   const newDate = dayjs(currentDate).add(1, 'day').toDate()
   
@@ -190,20 +343,42 @@ export async function advanceDay(managerId: string, currentDate: Date) {
     }
   })
 
-  // Recover fitness slightly
-  await prisma.player.updateMany({
+  // Recover fitness based on player status
+  const allPlayers = await prisma.player.findMany({
     where: {
-      club: {
-        managedBy: {
-          some: { id: managerId }
-        }
-      },
-      fitness: { lt: 100 }
-    },
-    data: {
-      fitness: { increment: 2 }
+      clubId: manager.clubId
     }
   })
+  
+  for (const player of allPlayers) {
+    let fitnessRecovery = 0
+    
+    if (player.isInjured) {
+      // Injured players don't recover fitness naturally
+      continue
+    }
+    
+    // Base recovery depends on age
+    if (player.age < 25) {
+      fitnessRecovery = 3 // Young players recover faster
+    } else if (player.age < 30) {
+      fitnessRecovery = 2 // Prime age players
+    } else if (player.age < 35) {
+      fitnessRecovery = 1 // Older players recover slower
+    } else {
+      fitnessRecovery = 1 // Very old players recover very slowly
+    }
+    
+    // Don't exceed 100
+    const newFitness = Math.min(100, player.fitness + fitnessRecovery)
+    
+    if (newFitness !== player.fitness) {
+      await prisma.player.update({
+        where: { id: player.id },
+        data: { fitness: newFitness }
+      })
+    }
+  }
 
   // Check if it's payday (every 7 days)
   const dayOfYear = dayjs(newDate).dayOfYear()
@@ -268,6 +443,15 @@ export async function advanceDay(managerId: string, currentDate: Date) {
   // Check for player birthdays and contract expiries (once per year)
   const currentMonth = dayjs(newDate).month()
   const previousMonth = dayjs(currentDate).month()
+  const currentDay = dayjs(newDate).date()
+  
+  // Transfer windows: January (month 0) and July (month 6)
+  const isTransferWindow = currentMonth === 0 || currentMonth === 6
+  
+  // Simulate AI transfers on specific days during transfer window
+  if (isTransferWindow && (currentDay === 5 || currentDay === 15 || currentDay === 25)) {
+    await simulateAITransfers()
+  }
   
   // New year - age players and check contracts
   if (currentMonth === 0 && previousMonth === 11) {
@@ -409,22 +593,28 @@ export async function playNextMatch(managerId: string) {
     throw new Error('No fixture to play')
   }
 
-  // Get all fixtures from the same round that haven't been played yet
+  // Get fixtures from the SAME ROUND as the player's fixture across ALL divisions
   const roundFixtures = await prisma.fixture.findMany({
     where: {
-      roundId: playerFixture.roundId,
+      roundId: playerFixture.roundId, // Only fixtures from the same round
       isPlayed: false
     },
     include: {
       homeClub: {
-        include: { players: true }
+        include: { players: true, division: true }
       },
       awayClub: {
-        include: { players: true }
+        include: { players: true, division: true }
       },
-      round: true
-    }
+      round: true,
+      division: true
+    },
+    orderBy: [
+      { scheduledAt: 'asc' }
+    ]
   })
+
+  console.log(`Simulating Round ${playerFixture.round.number}: ${roundFixtures.length} fixtures across all divisions`)
 
   let playerMatchResult = null
 
@@ -449,21 +639,68 @@ export async function playNextMatch(managerId: string) {
       }
     })
     
+    // Get lineups for both teams
+    const homeLineup = await prisma.lineup.findFirst({
+      where: {
+        manager: {
+          clubId: fixture.homeClubId
+        },
+        isActive: true
+      }
+    })
+    
+    const awayLineup = await prisma.lineup.findFirst({
+      where: {
+        manager: {
+          clubId: fixture.awayClubId
+        },
+        isActive: true
+      }
+    })
+    
     // Validate and build lineups
     const homeFormation = homeTactic?.formation || '4-4-2'
     const awayFormation = awayTactic?.formation || '4-4-2'
     
-    const homeLineupValidation = LineupValidator.validate(fixture.homeClub.players, homeFormation)
-    const awayLineupValidation = LineupValidator.validate(fixture.awayClub.players, awayFormation)
+    let homePlayers: Player[]
+    let awayPlayers: Player[]
     
-    // Use emergency lineup if validation fails
-    const homePlayers = homeLineupValidation.isValid 
-      ? homeLineupValidation.players 
-      : LineupValidator.getEmergencyLineup(fixture.homeClub.players)
+    // Use saved lineup if available, otherwise auto-select
+    if (homeLineup) {
+      const playerIds = JSON.parse(homeLineup.playerIds) as string[]
+      homePlayers = fixture.homeClub.players.filter(p => playerIds.includes(p.id))
       
-    const awayPlayers = awayLineupValidation.isValid 
-      ? awayLineupValidation.players 
-      : LineupValidator.getEmergencyLineup(fixture.awayClub.players)
+      // If saved lineup is incomplete, fill with best available
+      if (homePlayers.length < 11) {
+        const homeLineupValidation = LineupValidator.validate(fixture.homeClub.players, homeFormation)
+        homePlayers = homeLineupValidation.isValid 
+          ? homeLineupValidation.players 
+          : LineupValidator.getEmergencyLineup(fixture.homeClub.players)
+      }
+    } else {
+      const homeLineupValidation = LineupValidator.validate(fixture.homeClub.players, homeFormation)
+      homePlayers = homeLineupValidation.isValid 
+        ? homeLineupValidation.players 
+        : LineupValidator.getEmergencyLineup(fixture.homeClub.players)
+    }
+    
+    if (awayLineup) {
+      const playerIds = JSON.parse(awayLineup.playerIds) as string[]
+      awayPlayers = fixture.awayClub.players.filter(p => playerIds.includes(p.id))
+      
+      // If saved lineup is incomplete, fill with best available
+      if (awayPlayers.length < 11) {
+        const awayLineupValidation = LineupValidator.validate(fixture.awayClub.players, awayFormation)
+        awayPlayers = awayLineupValidation.isValid 
+          ? awayLineupValidation.players 
+          : LineupValidator.getEmergencyLineup(fixture.awayClub.players)
+      }
+    } else {
+      const awayLineupValidation = LineupValidator.validate(fixture.awayClub.players, awayFormation)
+      awayPlayers = awayLineupValidation.isValid 
+        ? awayLineupValidation.players 
+        : LineupValidator.getEmergencyLineup(fixture.awayClub.players)
+    }
     
     if (homePlayers.length < 11 || awayPlayers.length < 11) {
       throw new Error(`Não foi possível formar escalações completas para ${fixture.homeClub.name} x ${fixture.awayClub.name}`)
@@ -486,6 +723,13 @@ export async function playNextMatch(managerId: string) {
       pressure: awayTactic?.pressure || 50,
       isHome: false
     }
+
+    // Debug: Log applied tactics
+    console.log(`[${fixture.division.name}] Match ${fixture.homeClub.name} vs ${fixture.awayClub.name}:`)
+    console.log(`Home - Formation: ${homeFormation}, Aggression: ${homeTactic?.aggression || 50}, Pressure: ${homeTactic?.pressure || 50}`)
+    console.log(`Away - Formation: ${awayFormation}, Aggression: ${awayTactic?.aggression || 50}, Pressure: ${awayTactic?.pressure || 50}`)
+    console.log(`Home lineup: ${homeLineup ? 'SAVED' : 'AUTO'} (${homePlayers.length} players)`)
+    console.log(`Away lineup: ${awayLineup ? 'SAVED' : 'AUTO'} (${awayPlayers.length} players)`)
 
     // Simulate match
     const engine = new MatchEngine(`match-${fixture.id}`)
@@ -549,17 +793,35 @@ export async function playNextMatch(managerId: string) {
     }
 
     // Update player stats from the match
-    await prisma.player.updateMany({
-      where: {
-        OR: [
-          { clubId: fixture.homeClubId },
-          { clubId: fixture.awayClubId }
-        ]
-      },
-      data: {
-        fitness: { decrement: 10 }
-      }
-    })
+    // Only decrease fitness for players who actually played
+    const homeTacticPressure = homeTactic?.pressure || 50
+    const awayTacticPressure = awayTactic?.pressure || 50
+    
+    // Home team players
+    for (const player of homePlayers) {
+      const fatigueFactor = 10 + Math.floor((homeTacticPressure - 50) / 10) // Base 10, +1 per 10% pressure above 50
+      await prisma.player.update({
+        where: { id: player.id },
+        data: {
+          fitness: { 
+            decrement: Math.min(fatigueFactor, player.fitness) // Don't go below 0
+          }
+        }
+      })
+    }
+    
+    // Away team players
+    for (const player of awayPlayers) {
+      const fatigueFactor = 12 + Math.floor((awayTacticPressure - 50) / 10) // Base 12 for away (travel), +1 per 10% pressure above 50
+      await prisma.player.update({
+        where: { id: player.id },
+        data: {
+          fitness: { 
+            decrement: Math.min(fatigueFactor, player.fitness) // Don't go below 0
+          }
+        }
+      })
+    }
 
     // Apply injuries from match
     const newsGenerator = new NewsGenerator(prisma)
@@ -692,6 +954,7 @@ export async function startNewGame(managerName: string, clubId: string) {
 
 async function resetGameState() {
   console.log('Resetting game state...')
+  console.log('Starting deletion order: matchEvent → match → training → transfer → finance → news → lineup → tactic → saveSlot → manager')
   
   // Delete all game-related data in the correct order to avoid foreign key constraints
   await prisma.matchEvent.deleteMany()
@@ -700,8 +963,19 @@ async function resetGameState() {
   await prisma.transfer.deleteMany()
   await prisma.finance.deleteMany()
   await prisma.news.deleteMany()
+
+  // Delete tables that reference Manager (must be done before deleting managers)
+  console.log('Deleting lineups...')
+  await prisma.lineup.deleteMany()
+  console.log('Deleting tactics...')
   await prisma.tactic.deleteMany()
+  console.log('Deleting save slots...')
+  await prisma.saveSlot.deleteMany()
+
+  // Now safe to delete managers
+  console.log('Deleting managers...')
   await prisma.manager.deleteMany()
+  console.log('Game state reset completed successfully!')
   
   // Reset fixtures to unplayed state
   await prisma.fixture.updateMany({
@@ -949,9 +1223,7 @@ export async function getTransferData(managerId: string) {
     include: {
       club: {
         include: {
-          players: {
-            orderBy: { overall: 'desc' }
-          }
+          players: true
         }
       }
     }
@@ -961,26 +1233,39 @@ export async function getTransferData(managerId: string) {
     throw new Error('Manager or club not found')
   }
 
-  // Get other clubs in same division with their players
   const otherClubs = await prisma.club.findMany({
     where: {
-      divisionId: manager.club.divisionId,
       id: { not: manager.club.id }
     },
     include: {
-      players: {
-        where: {
-          contractEndsAt: { gt: new Date() } // Only players with valid contracts
-        },
-        orderBy: { overall: 'desc' }
-      }
+      players: true
     }
+  })
+
+  // Get recent transfers (last 30 days)
+  const recentTransfers = await prisma.transfer.findMany({
+    where: {
+      transferDate: {
+        gte: dayjs().subtract(30, 'days').toDate()
+      },
+      status: 'accepted'
+    },
+    include: {
+      player: true,
+      fromClub: true,
+      toClub: true
+    },
+    orderBy: {
+      transferDate: 'desc'
+    },
+    take: 10
   })
 
   return {
     myClub: manager.club,
     otherClubs,
-    budget: manager.club.budget
+    budget: manager.club.budget,
+    recentTransfers
   }
 }
 
@@ -1105,6 +1390,8 @@ export async function saveTactic(managerId: string, tactic: {
       isActive: true
     }
   })
+
+  console.log(`Tática salva para manager ${managerId}:`, savedTactic)
 
   return { success: true, tactic: savedTactic }
 }
