@@ -589,10 +589,15 @@ export async function playNextMatch(managerId: string) {
     throw new Error('No fixture to play')
   }
 
-  // Get fixtures from the SAME ROUND as the player's fixture across ALL divisions
+  // Get fixtures from the SAME ROUND NUMBER across ALL divisions
+  const { number: roundNumber, seasonId } = playerFixture.round
+  
   const roundFixtures = await prisma.fixture.findMany({
     where: {
-      roundId: playerFixture.roundId, // Only fixtures from the same round
+      round: { 
+        number: roundNumber, 
+        seasonId 
+      }, // All divisions in the same round number
       isPlayed: false
     },
     include: {
@@ -610,7 +615,7 @@ export async function playNextMatch(managerId: string) {
     ]
   })
 
-  console.log(`Simulating Round ${playerFixture.round.number}: ${roundFixtures.length} fixtures across all divisions`)
+  console.log(`Simulating Round ${roundNumber}: ${roundFixtures.length} fixtures across all divisions`)
 
   let playerMatchResult = null
 
