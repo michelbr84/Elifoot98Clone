@@ -68,8 +68,15 @@ export function HomeView({
         // Update the current date in the store
         setCurrentDate(new Date(data.newDate))
         playSuccess()
-        NotificationManager.success('Dia avançado com sucesso!')
-        router.refresh()
+        
+        if (data.seasonEnded) {
+          NotificationManager.success('Temporada finalizada! Uma nova temporada começou.')
+          // Force a complete refresh to reload all data for new season
+          window.location.reload()
+        } else {
+          NotificationManager.success('Dia avançado com sucesso!')
+          router.refresh()
+        }
       } else {
         throw new Error(data.error || 'Failed to advance day')
       }
@@ -156,6 +163,13 @@ export function HomeView({
         const data = await response.json()
         if (data.success) {
           currentSimDate = new Date(data.newDate)
+          
+          // If season ended during simulation, stop and reload
+          if (data.seasonEnded) {
+            NotificationManager.success('Temporada finalizada! Uma nova temporada começou.')
+            window.location.reload()
+            return
+          }
         } else {
           throw new Error(data.error || 'Failed to advance day during simulation')
         }

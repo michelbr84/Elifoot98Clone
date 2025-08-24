@@ -3,7 +3,23 @@ import { prisma } from '@/src/lib/prisma'
 
 export async function GET() {
   try {
+    // First, find the active season
+    const activeSeason = await prisma.season.findFirst({
+      where: { isActive: true }
+    })
+
+    if (!activeSeason) {
+      return NextResponse.json({ 
+        success: true,
+        divisions: [] 
+      })
+    }
+
+    // Fetch only divisions from the active season
     const divisions = await prisma.division.findMany({
+      where: {
+        seasonId: activeSeason.id
+      },
       orderBy: {
         level: 'asc'
       }

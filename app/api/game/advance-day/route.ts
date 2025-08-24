@@ -9,11 +9,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Manager ID and current date are required' }, { status: 400 })
     }
 
-    const newDate = await advanceDay(managerId, new Date(currentDate))
+    const result = await advanceDay(managerId, new Date(currentDate))
     
     return NextResponse.json({ 
       success: true, 
-      newDate: newDate.toISOString() 
+      newDate: result.newDate.toISOString(),
+      seasonEnded: result.seasonEnded 
     })
   } catch (error) {
     console.error('Error advancing day:', error)

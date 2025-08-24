@@ -235,11 +235,11 @@ export class MatchEngine {
         awayRatings.defense
       )
 
-      if (attackSuccess > 0.7) {
+      if (attackSuccess > 0.5) {
         // Shot on goal
         currentResult.statistics.homeShots++
         
-        if (this.rng.chance(attackSuccess - 0.5)) {
+        if (this.rng.chance(attackSuccess - 0.3)) {
           // Goal!
           currentResult.statistics.homeShotsOnTarget++
           const scorer = this.selectScorer(homeTeam.players, 'attack')
@@ -271,10 +271,10 @@ export class MatchEngine {
         homeRatings.defense
       )
 
-      if (attackSuccess > 0.7) {
+      if (attackSuccess > 0.5) {
         currentResult.statistics.awayShots++
         
-        if (this.rng.chance(attackSuccess - 0.5)) {
+        if (this.rng.chance(attackSuccess - 0.3)) {
           currentResult.statistics.awayShotsOnTarget++
           const scorer = this.selectScorer(awayTeam.players, 'attack')
           
@@ -394,9 +394,10 @@ export class MatchEngine {
    */
   private calculateAttackSuccess(attackRating: number, defenseRating: number): number {
     const ratio = attackRating / (attackRating + defenseRating)
-    // Add some randomness
-    const randomFactor = this.rng.randomFloat(0.8, 1.2)
-    return Math.min(0.9, Math.max(0.1, ratio * randomFactor))
+    // Add some randomness and boost attack slightly
+    const randomFactor = this.rng.randomFloat(0.9, 1.3)
+    const boostedRatio = ratio * 1.2 // Small boost to favor attacking
+    return Math.min(0.95, Math.max(0.15, boostedRatio * randomFactor))
   }
 
   /**

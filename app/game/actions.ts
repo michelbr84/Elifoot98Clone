@@ -543,7 +543,7 @@ export async function advanceDay(managerId: string, currentDate: Date) {
     })
   }
 
-  return newDate
+  return { newDate, seasonEnded }
 }
 
 export async function playNextMatch(managerId: string) {

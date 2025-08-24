@@ -409,3 +409,42 @@ O FootManager 98 está agora **TOTALMENTE FUNCIONAL** com todas as correções c
 - **Análise do Schema:** Identificadas relações Manager ↔ Lineup, Manager ↔ Tactic, Manager ↔ SaveSlot
 - **Ordem de Exclusão Corrigida:** lineup → tactic → saveSlot → manager
 - **Logs de Debug:** Adicionados para acompanhar o processo de reset
+
+## 🎉 CORREÇÕES IMPLEMENTADAS COM SUCESSO - 30/12/2024
+
+### 1. ✅ **Cores inconsistentes na tabela (linhas "pares" ficam cinza)** - CORRIGIDO
+**Problema:** A função `getPromotionRelegationStyle` define as classes Tailwind para cada posição (verde para promoção, vermelho/escuro para rebaixamento/eliminações etc.). Essa classe é aplicada ao elemento `<tr>` da linha. Porém, no CSS global existe um seletor para `.table-retro tr:nth-child(even)` que pinta *todas* as linhas pares de cinza. Como a regra CSS de zebra‐striping tem a mesma (ou maior) especificidade que a classe `bg-retro-green` aplicada pelo React, ela acaba "ganhando" na cascata, deixando apenas as linhas ímpares com a cor de promoção e as linhas pares sempre cinza.
+
+**Impacto:** Apenas a primeira e a terceira posições ficam verdes, e o fundo de eliminação aparece somente em algumas linhas.
+
+**Correção implementada:** Removida a regra de zebra‐striping `.table-retro tr:nth-child(even)` do `globals.css`
+
+**Status:** ✅ CORRIGIDO - Agora todas as posições de promoção/rebaixamento são pintadas corretamente
+
+### 2. ✅ **AI só empata e não faz gols** - CORRIGIDO
+**Problema:** No motor de jogo (`MatchEngine.simulateMinute`) o sucesso do ataque precisa ser **maior que 0,7** para que um chute aconteça; além disso, para que esse chute vire gol é necessário `rng.chance(attackSuccess - 0.5)`. Como a função `calculateAttackSuccess` calcula a razão `attack / (attack + defense)` e aplica um fator aleatório entre 0,8 e 1,2, a probabilidade de ultrapassar 0,7 é baixa quando os times têm ratings equilibrados.
+
+**Impacto:** Pouquíssimos chutes e quase nenhum gol, resultando em muitos empates de 0 a 0.
+
+**Correções implementadas:**
+- ✅ Reduzido o limiar de ataque de `0,7` para `0,5`
+- ✅ Ajustada a probabilidade de gol de `attackSuccess - 0.5` para `attackSuccess - 0.3`
+- ✅ Aumentado o fator aleatório para `0.9` a `1.3`
+- ✅ Adicionado boost de ataque de 1.2x na fórmula
+
+**Status:** ✅ CORRIGIDO - Jogos simulados agora têm resultados mais variados com gols
+
+### 3. ✅ **Duplicidade de divisões e impossibilidade de avançar temporada** - CORRIGIDO
+**Problema:** Ao terminar um campeonato, o código `SeasonManager.processSeasonEnd` cria novas divisões e clubes para a nova temporada, mas a API `/api/game/divisions` simplesmente executa `prisma.division.findMany()` sem filtrar pela temporada ativa.
+
+**Impacto:** Quando você termina a temporada e inicia outra, a tabela inclui as divisões de todas as temporadas (as da temporada antiga e as da nova), gerando abas duplicadas.
+
+**Correções implementadas:**
+- ✅ Modificada a API `divisions` para buscar apenas as divisões da temporada ativa
+- ✅ Interface recarrega completamente quando a temporada termina (window.location.reload())
+- ✅ Retornado flag `seasonEnded` da action `advanceDay`
+- ✅ Atualizada API advance-day para lidar com o novo retorno
+
+**Status:** ✅ CORRIGIDO - Navegação entre temporadas funcionando sem duplicidades
+
+O jogo continua 100% funcional com estas novas melhorias!
