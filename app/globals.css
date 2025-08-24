@@ -58,10 +58,6 @@
     @apply px-2 py-1 border border-black font-mono;
   }
 
-  .table-retro tr:nth-child(even) {
-    @apply bg-retro-gray;
-  }
-
   .card-retro {
     @apply border-2 border-black bg-white p-4;
   }
