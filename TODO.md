@@ -322,3 +322,90 @@ O FootManager 98 está agora **TOTALMENTE FUNCIONAL** com todas as correções c
 - **Análise do Schema:** Identificadas relações Manager ↔ Lineup, Manager ↔ Tactic, Manager ↔ SaveSlot
 - **Ordem de Exclusão Corrigida:** lineup → tactic → saveSlot → manager
 - **Logs de Debug:** Adicionados para acompanhar o processo de reset
+
+## 🚨 NOVOS PROBLEMAS IDENTIFICADOS - 28/12/2024
+
+### 1. ✅ **Simulação de outras divisões não funciona corretamente** - CORRIGIDO
+**Problema:** A função que executa as partidas usa o `roundId` da rodada do clube do jogador para buscar todos os confrontos a serem simulados. Cada divisão possui seu próprio registro de rodada (mesmo número de rodada, mas com `roundId` diferente), portanto o filtro por `roundId` só recupera as partidas da divisão do jogador. Assim, quando você joga sua partida apenas a sua divisão avança; as divisões controladas pelo computador ficam estagnadas.
+
+**Impacto:** Apenas a divisão do jogador progride, outras divisões ficam paradas
+
+**Correção implementada:** 
+```typescript
+// ANTES:
+const roundFixtures = await prisma.fixture.findMany({
+  where: {
+    roundId: playerFixture.roundId, // ❌ Apenas partidas da divisão do jogador
+    isPlayed: false
+  }
+})
+
+// DEPOIS:
+const { number: roundNumber, seasonId } = playerFixture.round
+const roundFixtures = await prisma.fixture.findMany({
+  where: {
+    round: { 
+      number: roundNumber, 
+      seasonId 
+    }, // ✅ Todas as divisões na mesma rodada
+    isPlayed: false
+  }
+})
+```
+
+**Status:** ✅ CORRIGIDO - Agora todas as divisões avançam juntas quando o jogador joga sua partida
+
+### 2. ✅ **Legenda estática em AllDivisionsView** - CORRIGIDO
+**Problema:** No componente `AllDivisionsView` a legenda é fixa: sempre exibe "Promoção" (verde), "Rebaixamento" (vermelho), "Eliminação (Série D)" (preto) e "Permanecem" (cinza). Entretanto, a Série A não tem promoção, e a Série D não tem rebaixamento. Por isso, as cores da legenda não combinam com as linhas da tabela.
+
+**Impacto:** Confusão visual - legenda mostra cores que não existem para a divisão selecionada
+
+**Correção implementada:** 
+```typescript
+const getLegendItems = (level: number) => {
+  if (level === 1) {
+    return [
+      { color: 'bg-retro-red', label: 'Rebaixamento' },
+      { color: 'bg-retro-gray', label: 'Permanecem na Divisão' }
+    ]
+  } else if (level === 4) {
+    return [
+      { color: 'bg-retro-green', label: 'Promoção' },
+      { color: 'bg-retro-dark', label: 'Eliminação (Série D)' },
+      { color: 'bg-retro-gray', label: 'Permanecem na Divisão' }
+    ]
+  } else {
+    return [
+      { color: 'bg-retro-green', label: 'Promoção' },
+      { color: 'bg-retro-red', label: 'Rebaixamento' },
+      { color: 'bg-retro-gray', label: 'Permanecem na Divisão' }
+    ]
+  }
+}
+```
+
+**Status:** ✅ CORRIGIDO - Legenda agora mostra apenas as cores relevantes para cada divisão
+
+## 🎉 CORREÇÕES IMPLEMENTADAS COM SUCESSO - 28/12/2024
+
+✅ **Simulação de todas as divisões:** Agora funciona corretamente usando `roundNumber` e `seasonId`
+✅ **Legenda dinâmica:** Exibe apenas as cores relevantes para cada divisão selecionada
+
+O jogo continua 100% funcional com estas novas melhorias!
+
+## 🎄 ATUALIZAÇÃO 24/12/2024: TODAS AS CORREÇÕES IMPLEMENTADAS!
+
+O FootManager 98 está agora **TOTALMENTE FUNCIONAL** com todas as correções críticas implementadas:
+
+- ✅ **Botões principais**: Todos funcionando (Avançar dia, Simular, Jogar partida)
+- ✅ **Sistema de escalação**: Dinâmico e respeitando formações táticas
+- ✅ **Exibição de informações**: Jogos, tabelas e divisões funcionando
+- ✅ **APIs corrigidas**: Divisões e standings com endpoints funcionais
+- ✅ **Performance otimizada**: Carregamento sob demanda implementado
+
+**🎮 O JOGO ESTÁ PRONTO PARA SER JOGADO! 🎮**
+
+### 🔧 Correção Técnica Implementada:
+- **Análise do Schema:** Identificadas relações Manager ↔ Lineup, Manager ↔ Tactic, Manager ↔ SaveSlot
+- **Ordem de Exclusão Corrigida:** lineup → tactic → saveSlot → manager
+- **Logs de Debug:** Adicionados para acompanhar o processo de reset

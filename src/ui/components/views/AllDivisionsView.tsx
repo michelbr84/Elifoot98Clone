@@ -105,6 +105,27 @@ export default function AllDivisionsView() {
     return ''
   }
 
+  const getLegendItems = (level: number) => {
+    if (level === 1) {
+      return [
+        { color: 'bg-retro-red', label: 'Rebaixamento' },
+        { color: 'bg-retro-gray', label: 'Permanecem na Divisão' }
+      ]
+    } else if (level === 4) {
+      return [
+        { color: 'bg-retro-green', label: 'Promoção' },
+        { color: 'bg-retro-dark', label: 'Eliminação (Série D)' },
+        { color: 'bg-retro-gray', label: 'Permanecem na Divisão' }
+      ]
+    } else {
+      return [
+        { color: 'bg-retro-green', label: 'Promoção' },
+        { color: 'bg-retro-red', label: 'Rebaixamento' },
+        { color: 'bg-retro-gray', label: 'Permanecem na Divisão' }
+      ]
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -202,23 +223,13 @@ export default function AllDivisionsView() {
       {/* Legend */}
       <div className="card-retro">
         <h4 className="font-mono font-bold mb-2">LEGENDA:</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 font-mono text-sm">
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-retro-green border border-black mr-2"></div>
-            <span>Promoção</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-retro-red border border-black mr-2"></div>
-            <span>Rebaixamento</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-retro-dark border border-black mr-2"></div>
-            <span>Eliminação (Série D)</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-retro-gray border border-black mr-2"></div>
-            <span>Permanecem na Divisão</span>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 font-mono text-sm">
+          {getLegendItems(selectedDivision).map((item, index) => (
+            <div key={index} className="flex items-center">
+              <div className={`w-4 h-4 ${item.color} border border-black mr-2`}></div>
+              <span>{item.label}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
