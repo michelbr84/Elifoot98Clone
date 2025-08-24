@@ -10,8 +10,23 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // First, find the active season
+    const activeSeason = await prisma.season.findFirst({
+      where: { isActive: true }
+    })
+
+    if (!activeSeason) {
+      return NextResponse.json({ 
+        success: true,
+        standings: [] 
+      })
+    }
+
     const division = await prisma.division.findFirst({
-      where: { level: parseInt(level) }
+      where: { 
+        level: parseInt(level),
+        seasonId: activeSeason.id
+      }
     })
 
     if (!division) {
@@ -20,6 +35,7 @@ export async function GET(request: NextRequest) {
 
     const standings = await prisma.standing.findMany({
       where: {
+        seasonId: activeSeason.id,
         club: {
           divisionId: division.id
         }
